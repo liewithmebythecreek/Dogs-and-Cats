@@ -1,0 +1,39 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    # Wait for CI Pipeline tests before deploying
+    # needs: test-backend 
+    steps:
+      - uses: actions/checkout@v3
+      
+      # Example Railway deployment using their CLI
+      # - name: Install Railway
+      #   run: npm i -g @railway/cli
+      # - name: Deploy to Railway
+      #   run: railway up
+      #   env:
+      #     RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      
+      - name: Backend Deployment Placeholder
+        run: echo "Set up Railway or Render tokens to auto-deploy Docker backend here."
+
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    # needs: build-frontend
+    steps:
+      - uses: actions/checkout@v3
+      
+      # Example Vercel deployment using their CLI
+      # - name: Install Vercel CLI
+      #   run: npm install --global vercel@latest
+      # - name: Deploy Project Artifacts to Vercel
+      #   run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }} && vercel build --prod --token=${{ secrets.VERCEL_TOKEN }} && vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+      
+      - name: Frontend Deployment Placeholder
+        run: echo "Set up Vercel or Netlify tokens to auto-deploy React frontend here."

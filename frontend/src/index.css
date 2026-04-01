@@ -1,0 +1,33 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .glass {
+    @apply bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-xl;
+  }
+  .glass-card {
+    @apply bg-slate-800/50 backdrop-blur-lg border border-slate-700/50 rounded-3xl shadow-2xl;
+  }
+  .text-glow {
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+  }
+  
+  /* Initial states for animations */
+  .fade-in-start {
+    opacity: 0;
+  }
+  .slide-up-start {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-slate-950 text-slate-100 min-h-screen overflow-x-hidden antialiased;
+    background-image: 
+      radial-gradient(circle at 15% 50%, rgba(14, 165, 233, 0.15), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15), transparent 25%);
+  }
+}

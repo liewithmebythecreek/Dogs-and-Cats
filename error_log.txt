@@ -1,0 +1,596 @@
+✔ Image weather-forecast-frontend  Built                                                                          58.0s
+ ✔ Image weather-forecast-backend   Built                                                                          58.0s
+ ✔ Network weather-forecast_default Created                                                                        0.1s 
+ ✔ Container weather_backend        Created                                                                        0.3s
+ ✔ Container weather_frontend       Created                                                                        0.2s
+Attaching to weather_backend, weather_frontend
+weather_frontend  | /docker-entrypoint.sh: /docker-entrypoint.d/ is not empty, will attempt to perform configuration    
+weather_frontend  | /docker-entrypoint.sh: Looking for shell scripts in /docker-entrypoint.d/
+weather_frontend  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/10-listen-on-ipv6-by-default.sh               
+weather_frontend  | 10-listen-on-ipv6-by-default.sh: info: Getting the checksum of /etc/nginx/conf.d/default.conf
+weather_backend   | Traceback (most recent call last):                                                                  
+weather_backend   |   File "/usr/local/bin/uvicorn", line 8, in <module>
+weather_backend   |     sys.exit(main())                                                                                
+weather_backend   |              ^^^^^^                                                                                 
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
+weather_backend   |     return self.main(*args, **kwargs)                                                               
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^                                                               
+weather_frontend  | 10-listen-on-ipv6-by-default.sh: info: /etc/nginx/conf.d/default.conf differs from the packaged version
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1406, in main
+weather_frontend  | /docker-entrypoint.sh: Sourcing /docker-entrypoint.d/15-local-resolvers.envsh
+                                                                                                                        
+weather_backend   |     rv = self.invoke(ctx)
+weather_backend   |          ^^^^^^^^^^^^^^^^
+weather_frontend  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/20-envsubst-on-templates.sh
+                                                                                                                        
+                                                                                                                        
+weather_frontend  | /docker-entrypoint.sh: Launching /docker-entrypoint.d/30-tune-worker-processes.sh
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
+                                                                                                                        
+                                                                                                                        
+weather_backend   |     return ctx.invoke(self.callback, **ctx.params)
+weather_frontend  | /docker-entrypoint.sh: Configuration complete; ready for start up
+
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: using the "epoll" event method                                    
+                                                                                                                        
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: nginx/1.29.7                                                      
+weather_backend   |     return callback(*args, **kwargs)                                                                
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: built by gcc 15.2.0 (Alpine 15.2.0)                               
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: OS: Linux 6.6.87.2-microsoft-standard-WSL2                        
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 418, in main                 
+                                                                                                                        
+                                                                                                                        
+weather_backend   |     run(
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: getrlimit(RLIMIT_NOFILE): 1048576:1048576
+weather_backend   |     server.run()
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: start worker process 29
+
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 62, in run
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: start worker process 30
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: start worker process 31                                           
+                                                                                                                        
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 190, in run                             
+                                                                                                                        
+weather_backend   |     return runner.run(main)                                                                         
+weather_backend   |            ^^^^^^^^^^^^^^^^] 1#1: start worker process 35                                           
+                                                                                                                        
+                                                                                                                        
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 118, in run
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: start worker process 36
+weather_backend   |     return self._loop.run_until_complete(task)                                                      
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: start worker process 37                                           
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                                      
+                                                                                                                        
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: start worker process 38
+
+                                                                                                                        
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: start worker process 39, line 654, in run_until_complete
+                                                                                                                        
+                                                                                                                        
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: start worker process 40
+weather_backend   |     return future.result()
+                                                                                                                        
+                                                                                                                        
+
+
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: start worker process 41
+weather_backend   |            ^^^^^^^^^^^^^^^
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: start worker process 42                                           
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 69, in serve               
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: start worker process 43                                           
+weather_backend   |     config.load()                                                                                   
+                                                                                                                        
+
+weather_frontend  | 2026/03/29 13:16:35 [notice] 1#1: start worker process 44
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/config.py", line 458, in load
+
+
+
+
+weather_backend   |     self.loaded_app = import_from_string(self.app)
+weather_backend   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 24, in import_from_string
+weather_backend   |     raise exc from None                                                                             
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 21, in import_from_string
+weather_backend   |     module = importlib.import_module(module_str)                                                    
+weather_backend   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                                    
+weather_backend   |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+weather_backend   |     return _bootstrap._gcd_import(name[level:], package, level)                                     
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^                                     
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import                                   
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load                                
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1126, in _find_and_load_unlocked
+weather_backend   |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed                      
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import                                   
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load                                
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1140, in _find_and_load_unlocked                       
+weather_backend   | ModuleNotFoundError: No module named 'backend.app'                                                  
+weather_backend exited with code 1 (restarting)
+weather_backend   | Traceback (most recent call last):
+weather_backend   |   File "/usr/local/bin/uvicorn", line 8, in <module>
+weather_backend   |     sys.exit(main())   w Enable Watch   d Detach
+weather_backend   |              ^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
+weather_backend   |     return self.main(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1406, in main
+weather_backend   |     rv = self.invoke(ctx)
+weather_backend   |          ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
+weather_backend   |     return ctx.invoke(self.callback, **ctx.params)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 824, in invoke
+weather_backend   |     return callback(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 418, in main
+weather_backend   |     run(
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 587, in run
+weather_backend   |     server.run()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 62, in run
+weather_backend   |     return asyncio.run(self.serve(sockets=sockets))
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 190, in run
+weather_backend   |     return runner.run(main)
+weather_backend   |            ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 118, in run
+weather_backend   |     return self._loop.run_until_complete(task)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+weather_backend   |     return future.result()
+weather_backend   |            ^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 69, in serve
+weather_backend   |     config.load()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/config.py", line 458, in load
+weather_backend   |     self.loaded_app = import_from_string(self.app)
+weather_backend   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 24, in import_from_string
+weather_backend   |     raise exc from None
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 21, in import_from_string
+weather_backend   |     module = importlib.import_module(module_str)
+weather_backend   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+weather_backend   |     return _bootstrap._gcd_import(name[level:], package, level)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1126, in _find_and_load_unlocked
+weather_backend   |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1140, in _find_and_load_unlocked
+weather_backend   | ModuleNotFoundError: No module named 'backend.app'
+weather_backend exited with code 1 (restarting)
+weather_backend   | Traceback (most recent call last):
+weather_backend   |   File "/usr/local/bin/uvicorn", line 8, in <module>
+weather_backend   |     sys.exit(main())   w Enable Watch   d Detach
+weather_backend   |              ^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
+weather_backend   |     return self.main(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1406, in main
+weather_backend   |     rv = self.invoke(ctx)
+weather_backend   |          ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
+weather_backend   |     return ctx.invoke(self.callback, **ctx.params)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 824, in invoke
+weather_backend   |     return callback(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 418, in main
+weather_backend   |     run(
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 587, in run
+weather_backend   |     server.run()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 62, in run
+weather_backend   |     return asyncio.run(self.serve(sockets=sockets))
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 190, in run
+weather_backend   |     return runner.run(main)
+weather_backend   |            ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 118, in run
+weather_backend   |     return self._loop.run_until_complete(task)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+weather_backend   |     return future.result()
+weather_backend   |            ^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 69, in serve
+weather_backend   |     config.load()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/config.py", line 458, in load
+weather_backend   |     self.loaded_app = import_from_string(self.app)
+weather_backend   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 24, in import_from_string
+weather_backend   |     raise exc from None
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 21, in import_from_string
+weather_backend   |     module = importlib.import_module(module_str)
+weather_backend   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+weather_backend   |     return _bootstrap._gcd_import(name[level:], package, level)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1126, in _find_and_load_unlocked
+weather_backend   |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1140, in _find_and_load_unlocked
+weather_backend   | ModuleNotFoundError: No module named 'backend.app'
+weather_backend exited with code 1 (restarting)
+weather_backend   | Traceback (most recent call last):
+weather_backend   |   File "/usr/local/bin/uvicorn", line 8, in <module>
+weather_backend   |     sys.exit(main())   w Enable Watch   d Detach
+weather_backend   |              ^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
+weather_backend   |     return self.main(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1406, in main
+weather_backend   |     rv = self.invoke(ctx)
+weather_backend   |          ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
+weather_backend   |     return ctx.invoke(self.callback, **ctx.params)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 824, in invoke
+weather_backend   |     return callback(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 418, in main
+weather_backend   |     run(
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 587, in run
+weather_backend   |     server.run()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 62, in run
+weather_backend   |     return asyncio.run(self.serve(sockets=sockets))
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 190, in run
+weather_backend   |     return runner.run(main)
+weather_backend   |            ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 118, in run
+weather_backend   |     return self._loop.run_until_complete(task)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+weather_backend   |     return future.result()
+weather_backend   |            ^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 69, in serve
+weather_backend   |     config.load()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/config.py", line 458, in load
+weather_backend   |     self.loaded_app = import_from_string(self.app)
+weather_backend   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 24, in import_from_string
+weather_backend   |     raise exc from None
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 21, in import_from_string
+weather_backend   |     module = importlib.import_module(module_str)
+weather_backend   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+weather_backend   |     return _bootstrap._gcd_import(name[level:], package, level)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1126, in _find_and_load_unlocked
+weather_backend   |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1140, in _find_and_load_unlocked
+weather_backend   | ModuleNotFoundError: No module named 'backend.app'
+weather_backend exited with code 1 (restarting)
+weather_backend   | Traceback (most recent call last):
+weather_backend   |   File "/usr/local/bin/uvicorn", line 8, in <module>
+weather_backend   |     sys.exit(main())   w Enable Watch   d Detach
+weather_backend   |              ^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
+weather_backend   |     return self.main(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1406, in main
+weather_backend   |     rv = self.invoke(ctx)
+weather_backend   |          ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
+weather_backend   |     return ctx.invoke(self.callback, **ctx.params)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 824, in invoke
+weather_backend   |     return callback(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 418, in main
+weather_backend   |     run(
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 587, in run
+weather_backend   |     server.run()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 62, in run
+weather_backend   |     return asyncio.run(self.serve(sockets=sockets))
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 190, in run
+weather_backend   |     return runner.run(main)
+weather_backend   |            ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 118, in run
+weather_backend   |     return self._loop.run_until_complete(task)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+weather_backend   |     return future.result()
+weather_backend   |            ^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 69, in serve
+weather_backend   |     config.load()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/config.py", line 458, in load
+weather_backend   |     self.loaded_app = import_from_string(self.app)
+weather_backend   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 24, in import_from_string
+weather_backend   |     raise exc from None
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 21, in import_from_string
+weather_backend   |     module = importlib.import_module(module_str)
+weather_backend   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+weather_backend   |     return _bootstrap._gcd_import(name[level:], package, level)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1126, in _find_and_load_unlocked
+weather_backend   |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1140, in _find_and_load_unlocked
+weather_backend   | ModuleNotFoundError: No module named 'backend.app'
+weather_backend exited with code 1 (restarting)
+weather_backend   | Traceback (most recent call last):
+weather_backend   |   File "/usr/local/bin/uvicorn", line 8, in <module>
+weather_backend   |     sys.exit(main())   w Enable Watch   d Detach
+weather_backend   |              ^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
+weather_backend   |     return self.main(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1406, in main
+weather_backend   |     rv = self.invoke(ctx)
+weather_backend   |          ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
+weather_backend   |     return ctx.invoke(self.callback, **ctx.params)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 824, in invoke
+weather_backend   |     return callback(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 418, in main
+weather_backend   |     run(
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 587, in run
+weather_backend   |     server.run()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 62, in run
+weather_backend   |     return asyncio.run(self.serve(sockets=sockets))
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 190, in run
+weather_backend   |     return runner.run(main)
+weather_backend   |            ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 118, in run
+weather_backend   |     return self._loop.run_until_complete(task)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+weather_backend   |     return future.result()
+weather_backend   |            ^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 69, in serve
+weather_backend   |     config.load()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/config.py", line 458, in load
+weather_backend   |     self.loaded_app = import_from_string(self.app)
+weather_backend   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 24, in import_from_string
+weather_backend   |     raise exc from None
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 21, in import_from_string
+weather_backend   |     module = importlib.import_module(module_str)
+weather_backend   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+weather_backend   |     return _bootstrap._gcd_import(name[level:], package, level)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1126, in _find_and_load_unlocked
+weather_backend   |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1140, in _find_and_load_unlocked
+weather_backend   | ModuleNotFoundError: No module named 'backend.app'
+weather_backend exited with code 1 (restarting)
+weather_backend   | Traceback (most recent call last):
+weather_backend   |   File "/usr/local/bin/uvicorn", line 8, in <module>
+weather_backend   |     sys.exit(main())   w Enable Watch   d Detach
+weather_backend   |              ^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
+weather_backend   |     return self.main(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1406, in main
+weather_backend   |     rv = self.invoke(ctx)
+weather_backend   |          ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
+weather_backend   |     return ctx.invoke(self.callback, **ctx.params)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 824, in invoke
+weather_backend   |     return callback(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 418, in main
+weather_backend   |     run(
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 587, in run
+weather_backend   |     server.run()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 62, in run
+weather_backend   |     return asyncio.run(self.serve(sockets=sockets))
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 190, in run
+weather_backend   |     return runner.run(main)
+weather_backend   |            ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 118, in run
+weather_backend   |     return self._loop.run_until_complete(task)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+weather_backend   |     return future.result()
+weather_backend   |            ^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 69, in serve
+weather_backend   |     config.load()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/config.py", line 458, in load
+weather_backend   |     self.loaded_app = import_from_string(self.app)
+weather_backend   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 24, in import_from_string
+weather_backend   |     raise exc from None
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 21, in import_from_string
+weather_backend   |     module = importlib.import_module(module_str)
+weather_backend   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+weather_backend   |     return _bootstrap._gcd_import(name[level:], package, level)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1126, in _find_and_load_unlocked
+weather_backend   |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1140, in _find_and_load_unlocked
+weather_backend   | ModuleNotFoundError: No module named 'backend.app'
+weather_backend exited with code 1 (restarting)
+weather_backend   | Traceback (most recent call last):
+weather_backend   |   File "/usr/local/bin/uvicorn", line 8, in <module>
+weather_backend   |     sys.exit(main())   w Enable Watch   d Detach
+weather_backend   |              ^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
+weather_backend   |     return self.main(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1406, in main
+weather_backend   |     rv = self.invoke(ctx)
+weather_backend   |          ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
+weather_backend   |     return ctx.invoke(self.callback, **ctx.params)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 824, in invoke
+weather_backend   |     return callback(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 418, in main
+weather_backend   |     run(
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 587, in run
+weather_backend   |     server.run()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 62, in run
+weather_backend   |     return asyncio.run(self.serve(sockets=sockets))
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 190, in run
+weather_backend   |     return runner.run(main)
+weather_backend   |            ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 118, in run
+weather_backend   |     return self._loop.run_until_complete(task)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+weather_backend   |     return future.result()
+weather_backend   |            ^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 69, in serve
+weather_backend   |     config.load()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/config.py", line 458, in load
+weather_backend   |     self.loaded_app = import_from_string(self.app)
+weather_backend   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 24, in import_from_string
+weather_backend   |     raise exc from None
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 21, in import_from_string
+weather_backend   |     module = importlib.import_module(module_str)
+weather_backend   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+weather_backend   |     return _bootstrap._gcd_import(name[level:], package, level)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1126, in _find_and_load_unlocked
+weather_backend   |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1140, in _find_and_load_unlocked
+weather_backend   | ModuleNotFoundError: No module named 'backend.app'
+weather_backend exited with code 1 (restarting)
+weather_backend   | Traceback (most recent call last):
+weather_backend   |   File "/usr/local/bin/uvicorn", line 8, in <module>
+weather_backend   |     sys.exit(main())   w Enable Watch   d Detach
+weather_backend   |              ^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
+weather_backend   |     return self.main(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1406, in main
+weather_backend   |     rv = self.invoke(ctx)
+weather_backend   |          ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
+weather_backend   |     return ctx.invoke(self.callback, **ctx.params)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 824, in invoke
+weather_backend   |     return callback(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 418, in main
+weather_backend   |     run(
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 587, in run
+weather_backend   |     server.run()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 62, in run
+weather_backend   |     return asyncio.run(self.serve(sockets=sockets))
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 190, in run
+weather_backend   |     return runner.run(main)
+weather_backend   |            ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 118, in run
+weather_backend   |     return self._loop.run_until_complete(task)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+weather_backend   |     return future.result()
+weather_backend   |            ^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 69, in serve
+weather_backend   |     config.load()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/config.py", line 458, in load
+weather_backend   |     self.loaded_app = import_from_string(self.app)
+weather_backend   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 24, in import_from_string
+weather_backend   |     raise exc from None
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 21, in import_from_string
+weather_backend   |     module = importlib.import_module(module_str)
+weather_backend   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+weather_backend   |     return _bootstrap._gcd_import(name[level:], package, level)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1126, in _find_and_load_unlocked
+weather_backend   |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1140, in _find_and_load_unlocked
+weather_backend   | ModuleNotFoundError: No module named 'backend.app'
+weather_backend exited with code 1 (restarting)
+weather_backend   | Traceback (most recent call last):
+weather_backend   |   File "/usr/local/bin/uvicorn", line 8, in <module>
+weather_backend   |     sys.exit(main())   w Enable Watch   d Detach
+weather_backend   |              ^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1485, in __call__
+weather_backend   |     return self.main(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1406, in main
+weather_backend   |     rv = self.invoke(ctx)
+weather_backend   |          ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 1269, in invoke
+weather_backend   |     return ctx.invoke(self.callback, **ctx.params)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/click/core.py", line 824, in invoke
+weather_backend   |     return callback(*args, **kwargs)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 418, in main
+weather_backend   |     run(
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/main.py", line 587, in run
+weather_backend   |     server.run()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 62, in run
+weather_backend   |     return asyncio.run(self.serve(sockets=sockets))
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 190, in run
+weather_backend   |     return runner.run(main)
+weather_backend   |            ^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/runners.py", line 118, in run
+weather_backend   |     return self._loop.run_until_complete(task)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/asyncio/base_events.py", line 654, in run_until_complete
+weather_backend   |     return future.result()
+weather_backend   |            ^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/server.py", line 69, in serve
+weather_backend   |     config.load()
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/config.py", line 458, in load
+weather_backend   |     self.loaded_app = import_from_string(self.app)
+weather_backend   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 24, in import_from_string
+weather_backend   |     raise exc from None
+weather_backend   |   File "/usr/local/lib/python3.11/site-packages/uvicorn/importer.py", line 21, in import_from_string
+weather_backend   |     module = importlib.import_module(module_str)
+weather_backend   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "/usr/local/lib/python3.11/importlib/__init__.py", line 126, in import_module
+weather_backend   |     return _bootstrap._gcd_import(name[level:], package, level)
+weather_backend   |            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1126, in _find_and_load_unlocked
+weather_backend   |   File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1204, in _gcd_import
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1176, in _find_and_load
+weather_backend   |   File "<frozen importlib._bootstrap>", line 1140, in _find_and_load_unlocked
+weather_backend   | ModuleNotFoundError: No module named 'backend.app'
+weather_backend exited with code 1 (restarting)

@@ -1,0 +1,41 @@
+name: Daily ML Retraining
+
+on:
+  schedule:
+    # Runs at 00:00 UTC every day
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        fetch-depth: 0 # needed for push later
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install dependencies
+      run: |
+        cd backend
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run training script
+      run: |
+        export PYTHONPATH=$(pwd)
+        python backend/training/train_model.py
+
+    - name: Commit newly trained model artifacts
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add backend/models/model.keras backend/models/scaler.pkl
+        # Only commit if there are changes
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update model weights [skip ci]" && git push)
