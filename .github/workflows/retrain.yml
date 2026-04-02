@@ -30,7 +30,7 @@ jobs:
     - name: Run training script
       run: |
         export PYTHONPATH=$(pwd)
-        python backend/training/train_model.py
+        python -m backend.training.train_model
 
     - name: Commit newly trained model artifacts
       run: |
