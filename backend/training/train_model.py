@@ -2,84 +2,142 @@ import os
 import datetime
 import numpy as np
 import tensorflow as tf
-from tensorflow.keras.models import Sequential
+from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import LSTM, Dense, Dropout
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from sklearn.model_selection import train_test_split
+from tensorflow.keras.optimizers import Adam
 
 from .data_collector import fetch_historical_data
 from .preprocess import preprocess_data
 
-def train_and_evaluate(lat: float = 52.52, lon: float = 13.41, years: int = 2):
-    """
-    Combines fetching, preprocessing, and training into a single pipeline.
-    """
-    print(f"--- Fething History Data for lat={lat}, lon={lon} ---")
-    end = datetime.date.today() - datetime.timedelta(days=3)
-    start = end - datetime.timedelta(days=365 * years)
-    
-    df = fetch_historical_data(lat, lon, start.strftime("%Y-%m-%d"), end.strftime("%Y-%m-%d"))
-    print(f"Data Fetched. Shape: {df.shape}")
-    
-    os.makedirs('backend/models', exist_ok=True)
-    scaler_path = "backend/models/scaler.pkl"
-    model_path = "backend/models/model.keras" # .h5 is legacy, using .keras
-    
-    time_steps = 24
-    future_steps = 24
-    features_count = 6 # temp, humidity, wind, pressure, precip, weather code
-    
-    print("--- Preprocessing Data ---")
-    X, Y = preprocess_data(df, time_steps=time_steps, future_steps=future_steps, scaler_path=scaler_path)
-    
-    print(f"X shape: {X.shape}") # (samples, time_steps, features)
-    print(f"Y shape: {Y.shape}") # (samples, future_steps, features)
-    
-    # Chronological Split (No Shuffling)
-    split = int(0.8 * len(X))
-    X_train, X_test = X[:split], X[split:]
-    Y_train, Y_test = Y[:split], Y[split:]
-    
-    print(f"Training shapes. X: {X_train.shape}, Y: {Y_train.shape}")
-    print(f"Validation shapes. X: {X_test.shape}, Y: {Y_test.shape}")
-    
-    # Define LSTM architecture
-    print("--- Building Model ---")
+# ── Hyper-parameters ──────────────────────────────────────────────────────────
+TIME_STEPS    = 24
+FUTURE_STEPS  = 24
+FEATURES      = 6   # temp, humidity, wind, pressure, precip, weather_code
+
+# First-run (cold start): train on a larger historical window
+COLD_START_YEARS   = 2
+COLD_START_EPOCHS  = 50
+COLD_START_LR      = 1e-3
+
+# Fine-tuning (daily update): only the last N days of fresh data
+FINETUNE_DAYS      = 30   # fetch enough rows to build meaningful sequences
+FINETUNE_EPOCHS    = 10
+FINETUNE_LR        = 1e-4  # lower LR to preserve learned weights
+
+
+def _build_model() -> tf.keras.Model:
+    """Builds and compiles a fresh LSTM model (cold-start only)."""
     model = Sequential([
-        LSTM(64, return_sequences=True, input_shape=(time_steps, features_count)),
+        LSTM(64, return_sequences=True, input_shape=(TIME_STEPS, FEATURES)),
         Dropout(0.2),
         LSTM(32, return_sequences=False),
-        # Output layer maps back to future_steps * features_count so we can reshape
-        Dense(future_steps * features_count) 
+        Dense(FUTURE_STEPS * FEATURES)
     ])
-    
-    model.compile(optimizer='adam', loss='mse', metrics=['mae', 'RootMeanSquaredError'])
-    model.summary()
-    
-    # Reshape Y back to flat for Dense layer output
-    Y_train_flat = Y_train.reshape((Y_train.shape[0], future_steps * features_count))
-    Y_test_flat = Y_test.reshape((Y_test.shape[0], future_steps * features_count))
-    
-    early_stop = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
-    checkpoint = ModelCheckpoint(model_path, monitor='val_loss', save_best_only=True)
-    
-    print("--- Training Model ---")
-    # Quick defaults, epochs set to 20 to balance GitHub workflow timeout
-    history = model.fit(
-        X_train, Y_train_flat, 
-        epochs=15, 
-        batch_size=32, 
-        validation_data=(X_test, Y_test_flat), 
+    model.compile(optimizer=Adam(COLD_START_LR), loss='mse',
+                  metrics=['mae', 'RootMeanSquaredError'])
+    return model
+
+
+def train_and_evaluate(lat: float = 52.52, lon: float = 13.41):
+    """
+    Fine-tuning pipeline.
+
+    • First run  – no model.keras exists yet:
+        fetches 2 years of history, trains from scratch, saves model + scaler.
+
+    • Subsequent runs (daily GitHub Actions trigger):
+        loads existing model, fetches the last ~30 days of data,
+        continues training with a reduced learning rate and fewer epochs.
+        The scaler is NEVER re-fitted so feature scaling stays consistent.
+    """
+    os.makedirs('backend/models', exist_ok=True)
+    model_path  = 'backend/models/model.keras'
+    scaler_path = 'backend/models/scaler.pkl'
+
+    end   = datetime.date.today() - datetime.timedelta(days=3)  # API lag
+
+    # ── Decide: cold start vs fine-tune ──────────────────────────────────────
+    is_cold_start = not os.path.exists(model_path)
+
+    if is_cold_start:
+        print("=== COLD START: no existing model found – training from scratch ===")
+        start  = end - datetime.timedelta(days=365 * COLD_START_YEARS)
+        epochs = COLD_START_EPOCHS
+        lr     = COLD_START_LR
+    else:
+        print("=== FINE-TUNE: existing model found – continuing from saved weights ===")
+        start  = end - datetime.timedelta(days=FINETUNE_DAYS)
+        epochs = FINETUNE_EPOCHS
+        lr     = FINETUNE_LR
+
+    # ── Fetch data ────────────────────────────────────────────────────────────
+    print(f"Fetching data  {start}  →  {end}  (lat={lat}, lon={lon})")
+    df = fetch_historical_data(lat, lon, start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
+    print(f"Fetched {len(df)} rows")
+
+    # ── Preprocess ────────────────────────────────────────────────────────────
+    # preprocess_data will LOAD the scaler if it exists, otherwise FIT a new one.
+    print('Preprocessing...')
+    X, Y = preprocess_data(df, time_steps=TIME_STEPS,
+                           future_steps=FUTURE_STEPS, scaler_path=scaler_path)
+    print(f"  X: {X.shape}  |  Y: {Y.shape}")
+
+    # ── Chronological split (no shuffle – time series!) ───────────────────────
+    split   = int(0.8 * len(X))
+    X_train, X_val = X[:split], X[split:]
+    Y_train, Y_val = Y[:split], Y[split:]
+
+    Y_train_flat = Y_train.reshape(Y_train.shape[0], FUTURE_STEPS * FEATURES)
+    Y_val_flat   = Y_val.reshape(Y_val.shape[0],   FUTURE_STEPS * FEATURES)
+
+    print(f"  Train: {X_train.shape}  |  Val: {X_val.shape}")
+
+    # ── Load or build model ───────────────────────────────────────────────────
+    if is_cold_start:
+        model = _build_model()
+        model.summary()
+    else:
+        model = load_model(model_path)
+        # Re-compile with a lower learning rate for fine-tuning
+        model.compile(optimizer=Adam(lr), loss='mse',
+                      metrics=['mae', 'RootMeanSquaredError'])
+        print(f"  Loaded model from {model_path}  (fine-tune LR={lr})")
+
+    # ── Callbacks ─────────────────────────────────────────────────────────────
+    early_stop = EarlyStopping(
+        monitor='val_loss',
+        patience=3 if not is_cold_start else 7,
+        restore_best_weights=True
+    )
+    checkpoint = ModelCheckpoint(
+        model_path,
+        monitor='val_loss',
+        save_best_only=True,
+        verbose=1
+    )
+
+    # ── Train ─────────────────────────────────────────────────────────────────
+    print(f'Training  ({epochs} max epochs, LR={lr}) ...')
+    model.fit(
+        X_train, Y_train_flat,
+        epochs=epochs,
+        batch_size=32,
+        validation_data=(X_val, Y_val_flat),
         callbacks=[early_stop, checkpoint],
         verbose=1
     )
-    
-    loss, mae, rmse = model.evaluate(X_test, Y_test_flat)
-    print(f"--- Evaluation complete ---")
-    print(f"MAE: {mae}")
-    print(f"RMSE: {rmse}")
-    
-    print(f"Model and Scaler completely outputted to backend/models/")
 
-if __name__ == "__main__":
+    # ── Evaluate ─────────────────────────────────────────────────────────────
+    loss, mae, rmse = model.evaluate(X_val, Y_val_flat, verbose=0)
+    mode = 'Cold-start' if is_cold_start else 'Fine-tune'
+    print(f'--- {mode} evaluation ---')
+    print(f'  Loss : {loss:.6f}')
+    print(f'  MAE  : {mae:.6f}')
+    print(f'  RMSE : {rmse:.6f}')
+    print(f'Model saved to {model_path}')
+    print(f'Scaler at     {scaler_path}')
+
+
+if __name__ == '__main__':
     train_and_evaluate()
