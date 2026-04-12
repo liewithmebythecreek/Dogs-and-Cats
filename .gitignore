@@ -37,3 +37,4 @@ build/
 
 # But keep README.md
 !README.md
+!requirements.txt
