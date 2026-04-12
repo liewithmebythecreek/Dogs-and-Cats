@@ -1,14 +1,27 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# NOTE: torch, torch-geometric and the PyG Big Four (torch-scatter,
+#       torch-sparse, torch-cluster, torch-spline-conv) are intentionally
+#       absent here. They are installed in a specific order with pinned
+#       versions directly in the Dockerfile to avoid wheel-index conflicts.
+# ─────────────────────────────────────────────────────────────────────────────
+
+# API
 fastapi
 uvicorn
 httpx
+
+# Data
 pandas
 numpy
 scikit-learn
-torch_geometric
 networkx
 geopy
+
+# Schema / config
 pydantic
+python-dotenv
+
+# Weather data ingestion
 openmeteo-requests
 requests-cache
 retry-requests
-python-dotenv
