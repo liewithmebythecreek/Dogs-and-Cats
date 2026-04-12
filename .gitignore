@@ -1,0 +1,39 @@
+# Model files
+*.h5
+*.pkl
+*.pt
+*.pth
+*.onnx
+*.weights
+/models/
+/model/
+
+# Logs
+*.log
+/logs/
+error_log.txt
+
+# Environment variables
+.env
+.env.local
+
+# Cache and temporary files
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.cache/
+node_modules/
+.npm/
+dist/
+build/
+.DS_Store
+
+# Ignore all markdown and text files
+*.md
+*.txt
+
+# But keep README.md
+!README.md
