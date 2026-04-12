@@ -1,116 +1,149 @@
 import React from 'react';
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer
+  LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
 } from 'recharts';
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   ChartLegend,
-  ChartLegendContent
-} from "@/components/ui/chart";
+  ChartLegendContent,
+} from '@/components/ui/chart';
 
-const chartConfigTemp = {
-  apiTemp: {
-    label: "Open-Meteo",
-    color: "#3b82f6",
-  },
-  lstmTemp: {
-    label: "LSTM Model",
-    color: "#f59e0b",
-  },
+// ── Chart colour configs ───────────────────────────────────────────────────────
+const configTemp = {
+  temperature_2m: { label: 'Temperature (°C)', color: '#f59e0b' },
+};
+const configHumidity = {
+  relative_humidity_2m: { label: 'Humidity (%)', color: '#06b6d4' },
+};
+const configWind = {
+  wind_speed_10m: { label: 'Wind (km/h)', color: '#a78bfa' },
+};
+const configPrecip = {
+  precipitation: { label: 'Precip. (mm)', color: '#34d399' },
 };
 
-const chartConfigHumidity = {
-  apiHumidity: {
-    label: "Open-Meteo",
-    color: "#06b6d4",
-  },
-  lstmHumidity: {
-    label: "LSTM Model",
-    color: "#ec4899",
-  },
-};
+// ── Helper: build tick labels (h+1, h+6, h+12 …) ─────────────────────────────
+function buildChartData(forecastSteps) {
+  return forecastSteps.map((step, idx) => ({
+    label: `+${step.hour}h`,
+    temperature_2m:       step.temperature_2m,
+    relative_humidity_2m: step.relative_humidity_2m,
+    wind_speed_10m:       step.wind_speed_10m,
+    precipitation:        step.precipitation,
+  }));
+}
 
-const ForecastCharts = ({ forecast, mlPredictions }) => {
-  if (!forecast || !forecast.hourly) return null;
+// ── Shared mini-chart card ─────────────────────────────────────────────────────
+function MetricChart({ title, dotColor, config, dataKey, data, unit = '' }) {
+  return (
+    <Card className="bg-slate-900/50 border-white/5 backdrop-blur-md transition-all">
+      <CardHeader className="pb-2">
+        <CardTitle
+          className="text-lg font-semibold flex items-center gap-2"
+          style={{ fontFamily: 'Outfit, sans-serif', color: '#e2e8f0' }}
+        >
+          <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: dotColor }} />
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="h-[240px] w-full">
+          <ChartContainer config={config} className="w-full h-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data} margin={{ top: 5, right: 16, bottom: 5, left: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff12" vertical={false} />
+                <XAxis
+                  dataKey="label"
+                  stroke="#94a3b8"
+                  tick={{ fill: '#94a3b8', fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
+                  interval={5}
+                  dy={8}
+                />
+                <YAxis
+                  stroke="#94a3b8"
+                  tick={{ fill: '#94a3b8', fontSize: 11 }}
+                  tickLine={false}
+                  axisLine={false}
+                  dx={-6}
+                />
+                <ChartTooltip
+                  content={<ChartTooltipContent />}
+                  formatter={(v) => [`${v} ${unit}`, '']}
+                />
+                <ChartLegend
+                  content={<ChartLegendContent />}
+                  wrapperStyle={{ paddingTop: '12px' }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey={dataKey}
+                  stroke={dotColor}
+                  strokeWidth={2.5}
+                  dot={false}
+                  activeDot={{ r: 5, strokeWidth: 0 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </ChartContainer>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
 
-  const chartData = [];
-  const limit = 24; // Show next 24 hours
-
-  for (let i = 0; i < limit; i++) {
-    const timeFull = new Date(forecast.hourly.time[i]);
-    const label = timeFull.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    chartData.push({
-      time: label,
-      apiTemp: forecast.hourly.temperature_2m[i],
-      lstmTemp: mlPredictions && mlPredictions.length > i ? mlPredictions[i].temperature_2m : null,
-      apiHumidity: forecast.hourly.relative_humidity_2m[i],
-      lstmHumidity: mlPredictions && mlPredictions.length > i ? mlPredictions[i].relative_humidity_2m : null,
-    });
+// ── Main export ───────────────────────────────────────────────────────────────
+const ForecastCharts = ({ forecastSteps = [], cityName }) => {
+  if (!forecastSteps || forecastSteps.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-40 text-slate-500">
+        {cityName
+          ? `No forecast data available for ${cityName}.`
+          : 'Select a city to view the 48-hour forecast.'}
+      </div>
+    );
   }
 
-  return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 w-full mt-4">
-      {/* Temperature Chart */}
-      <Card className="bg-slate-900/50 border-white/5 backdrop-blur-md relative group transition-all">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-orange-200 to-red-200 flex items-center gap-2" style={{fontFamily: 'Outfit, sans-serif'}}>
-             <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></div>
-             Temperature Forecast (24h)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px] w-full">
-            <ChartContainer config={chartConfigTemp} className="w-full h-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff1a" vertical={false} />
-                  <XAxis dataKey="time" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} tickLine={false} axisLine={false} dy={10} />
-                  <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} tickLine={false} axisLine={false} dx={-10} />
-                  <ChartTooltip 
-                    content={<ChartTooltipContent />}
-                  />
-                  <ChartLegend content={<ChartLegendContent />} wrapperStyle={{ paddingTop: '20px' }} />
-                  <Line type="monotone" dataKey="apiTemp" stroke="var(--color-apiTemp)" strokeWidth={3} dot={false} activeDot={{ r: 6, strokeWidth: 0 }} />
-                  <Line type="monotone" dataKey="lstmTemp" stroke="var(--color-lstmTemp)" strokeWidth={3} dot={false} strokeDasharray="5 5" activeDot={{ r: 6, strokeWidth: 0 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </div>
-        </CardContent>
-      </Card>
+  const data = buildChartData(forecastSteps);
 
-      {/* Humidity Chart */}
-      <Card className="bg-slate-900/50 border-white/5 backdrop-blur-md relative group transition-all">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-cyan-200 to-blue-200 flex items-center gap-2" style={{fontFamily: 'Outfit, sans-serif'}}>
-             <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></div>
-             Humidity Forecast (24h)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px] w-full">
-            <ChartContainer config={chartConfigHumidity} className="w-full h-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData} margin={{ top: 5, right: 20, bottom: 5, left: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#ffffff1a" vertical={false} />
-                  <XAxis dataKey="time" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} tickLine={false} axisLine={false} dy={10} />
-                  <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} tickLine={false} axisLine={false} dx={-10} />
-                  <ChartTooltip 
-                    content={<ChartTooltipContent />}
-                  />
-                  <ChartLegend content={<ChartLegendContent />} wrapperStyle={{ paddingTop: '20px' }} />
-                  <Line type="monotone" dataKey="apiHumidity" stroke="var(--color-apiHumidity)" strokeWidth={3} dot={false} activeDot={{ r: 6, strokeWidth: 0 }} />
-                  <Line type="monotone" dataKey="lstmHumidity" stroke="var(--color-lstmHumidity)" strokeWidth={3} dot={false} strokeDasharray="5 5" activeDot={{ r: 6, strokeWidth: 0 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </ChartContainer>
-          </div>
-        </CardContent>
-      </Card>
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full mt-2">
+      <MetricChart
+        title="Temperature · 48 h"
+        dotColor="#f59e0b"
+        config={configTemp}
+        dataKey="temperature_2m"
+        data={data}
+        unit="°C"
+      />
+      <MetricChart
+        title="Humidity · 48 h"
+        dotColor="#06b6d4"
+        config={configHumidity}
+        dataKey="relative_humidity_2m"
+        data={data}
+        unit="%"
+      />
+      <MetricChart
+        title="Wind Speed · 48 h"
+        dotColor="#a78bfa"
+        config={configWind}
+        dataKey="wind_speed_10m"
+        data={data}
+        unit="km/h"
+      />
+      <MetricChart
+        title="Precipitation · 48 h"
+        dotColor="#34d399"
+        config={configPrecip}
+        dataKey="precipitation"
+        data={data}
+        unit="mm"
+      />
     </div>
   );
 };

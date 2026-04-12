@@ -10,6 +10,11 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      - ./data:/app/data
+    deploy:
+      resources:
+        limits:
+          memory: 8G
     environment:
       - ENVIRONMENT=development
       - PORT=8000
