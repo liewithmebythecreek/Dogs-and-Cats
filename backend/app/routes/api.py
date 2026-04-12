@@ -1,67 +1,80 @@
-from fastapi import APIRouter, HTTPException, Query
-from typing import Optional
-from app.services.weather_api import fetch_current_weather, fetch_forecast_weather, search_city
+import datetime
+from fastapi import APIRouter, HTTPException
+from app.services.weather_api import fetch_all_live_data, fetch_current_conditions
 from app.services.ml_service import ml_service
-import pandas as pd
-import httpx
 
 router = APIRouter()
 
+# ── Health ────────────────────────────────────────────────────────────────────
 @router.get("/health")
-def health_check():
+async def health_check():
     return {
         "status": "up",
-        "ml_model_loaded": ml_service.is_ready
+        "ml_model_loaded": ml_service.is_ready,
     }
 
-@router.get("/locations/search")
-async def search_locations(q: str = Query(..., min_length=2)):
+
+# ── Current conditions for all 7 nodes ───────────────────────────────────────
+@router.get("/current")
+async def get_current():
+    """
+    Returns the latest live observation for every Punjab graph node.
+    """
     try:
-        results = await search_city(q)
-        return {"results": results}
+        data = await fetch_current_conditions()
+        return {"nodes": data}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/current/{lat}/{lon}")
-async def get_current(lat: float, lon: float):
-    try:
-        data = await fetch_current_weather(lat, lon)
-        return data
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
-@router.get("/forecast/{lat}/{lon}")
-async def get_forecast(lat: float, lon: float):
+# ── 48-hour Graph-LSTM forecast ───────────────────────────────────────────────
+@router.get("/forecast")
+async def get_forecast():
     """
-    Returns the Open Meteo forecast and also attempts to generate 
-    an ML prediction for comparison if the model is ready.
+    Fetches live 48-hour history for all 7 Punjab nodes, runs the
+    Spatio-Temporal Graph-LSTM, and returns a structured 48-hour prediction.
+
+    Response shape:
+    {
+      "metadata": { "start_time": "...", "resolution": "1h", "horizon": "48h",
+                    "nodes": [...city names...] },
+      "current":  { <city>: { temperature_2m, ... }, ... },
+      "forecast": { <city>: [ { hour, temperature_2m, ... }, ... ], ... }
+    }
     """
     try:
-        forecast_data = await fetch_forecast_weather(lat, lon)
-        
-        ml_predictions = []
-        if ml_service.is_ready:
-            # We need the last 24 hours of data for a prediction. 
-            # We'll fetch real history from open-meteo just-in-time to feed the model
-            url = "https://api.open-meteo.com/v1/forecast"
-            hist_params = {
-                "latitude": lat,
-                "longitude": lon,
-                "past_days": 2, 
-                "hourly": ["temperature_2m", "relative_humidity_2m", "wind_speed_10m", "surface_pressure", "precipitation", "weather_code"]
+        # 1. Fetch live feature streams for all 7 nodes concurrently
+        city_dfs = await fetch_all_live_data()
+
+        # 2. Build current-conditions snapshot (latest row per node)
+        current = {city: {} for city in city_dfs}
+        for city, df in city_dfs.items():
+            last = df.iloc[-1]
+            current[city] = {
+                "temperature_2m":       round(float(last["temperature_2m"]), 2),
+                "relative_humidity_2m": round(float(last["relative_humidity_2m"]), 2),
+                "wind_speed_10m":       round(float(last["wind_speed_10m"]), 2),
+                "surface_pressure":     round(float(last["surface_pressure"]), 2),
+                "precipitation":        round(float(last["precipitation"]), 2),
+                "weather_code":         int(last["weather_code"]),
             }
-            async with httpx.AsyncClient() as client:
-                hist_res = await client.get(url, params=hist_params)
-                hist_json = hist_res.json()
-            
-            # Extract last 24 hours before 'now'
-            # Note: For production, we would cleanly slice the time array to exactly 24 hours behind 'current time'.
-            # As a simplified approach, we just use the last 24 valid records available.
-            df = pd.DataFrame(hist_json['hourly'])
-            # Only keep the 6 features
-            ml_predictions = ml_service.predict(df)
-            
-        forecast_data["ml_predictions"] = ml_predictions
-        return forecast_data
+
+        # 3. Run STGNN inference (or return empty if model not loaded)
+        forecast = ml_service.predict(city_dfs) if ml_service.is_ready else {}
+
+        start_iso = datetime.datetime.utcnow().replace(
+            minute=0, second=0, microsecond=0
+        ).isoformat() + "Z"
+
+        return {
+            "metadata": {
+                "start_time": start_iso,
+                "resolution": "1h",
+                "horizon":    "48h",
+                "nodes":      list(city_dfs.keys()),
+            },
+            "current":  current,
+            "forecast": forecast,
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
