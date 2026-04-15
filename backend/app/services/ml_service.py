@@ -1,6 +1,7 @@
 import os
 import sys
 import pickle
+import traceback
 import datetime
 import numpy as np
 import pandas as pd
@@ -15,6 +16,7 @@ try:
     TORCH_AVAILABLE = True
 except ImportError as e:
     print(f"[ml_service] PyTorch/STGNN not available: {e}")
+    traceback.print_exc()
     TORCH_AVAILABLE = False
 
 DYNAMIC_FEATURES = [
@@ -23,9 +25,9 @@ DYNAMIC_FEATURES = [
     'precipitation', 'weather_code'
 ]
 STATIC_FEATURES = ['sin_hour', 'cos_hour', 'elevation', 'lat', 'lon']
-TIME_STEPS  = 48
+TIME_STEPS   = 48
 FUTURE_STEPS = 48
-HIDDEN_DIM  = 64
+HIDDEN_DIM   = 64
 
 
 def _build_adj(edges, num_nodes, device):
@@ -52,7 +54,7 @@ class STGNNInferenceService:
         self.is_ready    = False
         self._load_artifacts()
 
-    # ── Private ──────────────────────────────────────────────────────────────
+    # ── Private ───────────────────────────────────────────────────────────────
 
     def _load_artifacts(self):
         if not TORCH_AVAILABLE:
@@ -62,31 +64,63 @@ class STGNNInferenceService:
             print("[ml_service] Model weights not found – running in API-only mode.")
             return
 
-        print("[ml_service] Loading STGNN model and scalers …")
-        device = torch.device("cpu")
+        try:
+            print("[ml_service] Loading STGNN model and scalers …")
+            device = torch.device("cpu")
 
-        # Build model & load weights
-        self.model = WeatherSTGNN(
-            num_nodes=NUM_NODES,
-            dynamic_features=len(DYNAMIC_FEATURES),
-            static_features=len(STATIC_FEATURES),
-            hidden_dim=HIDDEN_DIM
-        )
-        self.model.load_state_dict(torch.load(self.model_path, map_location=device, weights_only=True))
-        self.model.eval()
+            # Build model & load weights
+            self.model = WeatherSTGNN(
+                num_nodes=NUM_NODES,
+                dynamic_features=len(DYNAMIC_FEATURES),
+                static_features=len(STATIC_FEATURES),
+                hidden_dim=HIDDEN_DIM
+            )
+            self.model.load_state_dict(
+                torch.load(self.model_path, map_location=device, weights_only=True)
+            )
+            self.model.eval()
 
-        # Load per-node scalers
-        with open(self.scaler_path, "rb") as f:
-            self.scalers = pickle.load(f)
+            # Load per-node scalers
+            with open(self.scaler_path, "rb") as f:
+                self.scalers = pickle.load(f)
 
-        # Build adjacency once
-        edges, _ = build_graph_edges(threshold_km=200.0)
-        self.adj  = _build_adj(edges, NUM_NODES, device)
+            # Build adjacency once
+            edges, _ = build_graph_edges(threshold_km=200.0)
+            self.adj  = _build_adj(edges, NUM_NODES, device)
 
-        self.is_ready = True
-        print(f"[ml_service] Ready – {NUM_NODES} nodes, {FUTURE_STEPS}h horizon.")
+            self.is_ready = True
+            print(f"[ml_service] Ready – {NUM_NODES} nodes, {FUTURE_STEPS}h horizon.")
+
+        except Exception:
+            print("[ml_service] ERROR during artifact loading – falling back to API-only mode.")
+            traceback.print_exc()
+            self.is_ready = False
 
     # ── Public API ────────────────────────────────────────────────────────────
+
+    def validate_city_data(self, city_dfs: Dict[str, pd.DataFrame]) -> None:
+        """
+        Raises ValueError if any of the 7 expected graph nodes is missing
+        or has fewer rows than TIME_STEPS. This catches data-shape mismatches
+        before they cause a cryptic 500 inside the model forward pass.
+        """
+        missing = [c for c in CITY_NAMES if c not in city_dfs]
+        if missing:
+            raise ValueError(
+                f"[ml_service] Data missing for {len(missing)} node(s): {missing}. "
+                "Cannot form the graph tensor."
+            )
+
+        short = {
+            city: len(df)
+            for city, df in city_dfs.items()
+            if len(df) < TIME_STEPS
+        }
+        if short:
+            raise ValueError(
+                f"[ml_service] Insufficient history rows for nodes {short}. "
+                f"Need at least {TIME_STEPS} rows per node."
+            )
 
     def preprocess_graph_input(self, city_dfs: Dict[str, pd.DataFrame]) -> "torch.Tensor":
         """
@@ -106,46 +140,69 @@ class STGNNInferenceService:
 
         # Take the last TIME_STEPS rows
         window = data[-TIME_STEPS:]
-        return torch.FloatTensor(window).unsqueeze(0)   # [1, T, N, F]
+        tensor = torch.FloatTensor(window).unsqueeze(0)   # [1, T, N, F]
+
+        print(
+            f"[ml_service] Input tensor shape: {list(tensor.shape)} "
+            f"(expected [1, {TIME_STEPS}, {NUM_NODES}, "
+            f"{len(DYNAMIC_FEATURES) + len(STATIC_FEATURES)}])"
+        )
+        return tensor
 
     def predict(self, city_dfs: Dict[str, pd.DataFrame]) -> Dict[str, List[Dict[str, Any]]]:
         """
         Run STGNN inference and return a dict keyed by city name.
         Each city contains a list of 48 hourly forecast dicts.
+        Raises on any error so the caller (api.py) can return a proper 500.
         """
         if not self.is_ready:
             return {}
 
-        x = self.preprocess_graph_input(city_dfs)           # [1, T, N, F]
-        adj = self.adj.unsqueeze(0)                          # [1, N, N]
+        try:
+            # ── 1. Validate all 7 nodes have enough data ──────────────────────
+            self.validate_city_data(city_dfs)
 
-        with torch.no_grad():
-            preds = self.model(x, adj, future_steps=FUTURE_STEPS)  # [1, 48, N, 6]
+            # ── 2. Build graph input tensor ───────────────────────────────────
+            x   = self.preprocess_graph_input(city_dfs)       # [1, T, N, F]
+            adj = self.adj.unsqueeze(0)                        # [1, N, N]
 
-        preds_np = preds.squeeze(0).numpy()                  # [48, N, 6]
+            # ── 3. Forward pass (no_grad saves memory, prevents graph build) ──
+            with torch.no_grad():
+                preds = self.model(x, adj, future_steps=FUTURE_STEPS)  # [1, 48, N, 6]
 
-        result = {}
-        for i, city in enumerate(CITY_NAMES):
-            scaler    = self.scalers[city]
-            city_preds = preds_np[:, i, :]                   # [48, 6]
-            city_inv   = scaler.inverse_transform(city_preds) # [48, 6]
+            print(f"[ml_service] Output tensor shape: {list(preds.shape)}")
 
-            steps = []
-            for h in range(FUTURE_STEPS):
-                row = city_inv[h]
-                steps.append({
-                    "hour":                h + 1,
-                    "temperature_2m":      round(float(row[0]), 2),
-                    "relative_humidity_2m": round(float(row[1]), 2),
-                    "wind_speed_10m":       round(float(row[2]), 2),
-                    "surface_pressure":     round(float(row[3]), 2),
-                    "precipitation":        round(float(row[4]), 2),
-                    "weather_code":         int(round(float(row[5]))),
-                })
-            result[city] = steps
+            preds_np = preds.squeeze(0).numpy()   # [48, N, 6]
 
-        return result
+            # ── 4. Inverse-transform and structure results ────────────────────
+            result = {}
+            for i, city in enumerate(CITY_NAMES):
+                scaler     = self.scalers[city]
+                city_preds = preds_np[:, i, :]                # [48, 6]
+                city_inv   = scaler.inverse_transform(city_preds)  # [48, 6]
+
+                steps = []
+                for h in range(FUTURE_STEPS):
+                    row = city_inv[h]
+                    steps.append({
+                        "hour":                 h + 1,
+                        "temperature_2m":       round(float(row[0]), 2),
+                        "relative_humidity_2m": round(float(row[1]), 2),
+                        "wind_speed_10m":       round(float(row[2]), 2),
+                        "surface_pressure":     round(float(row[3]), 2),
+                        "precipitation":        round(float(row[4]), 2),
+                        "weather_code":         int(round(float(row[5]))),
+                    })
+                result[city] = steps
+
+            return result
+
+        except Exception:
+            # Print full traceback so Docker/server logs show root cause
+            print("[ml_service] ERROR during inference:")
+            traceback.print_exc()
+            raise   # re-raise so api.py returns a 500 with detail
 
 
-# ── Singleton ─────────────────────────────────────────────────────────────────
+# ── Singleton ──────────────────────────────────────────────────────────────────
 ml_service = STGNNInferenceService()

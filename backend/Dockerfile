@@ -22,7 +22,14 @@ RUN pip install --no-cache-dir \
     torch==2.1.0 torchvision torchaudio \
     --index-url https://download.pytorch.org/whl/cpu
 
-# ── Step 2: PyG + "Big Four" from matching pre-compiled wheel index ───────────
+# ── Step 2: Pin NumPy and urllib3 BEFORE PyG to prevent ABI breakage ──────────
+# PyTorch 2.1.0 was compiled against NumPy 1.x; NumPy 2.x breaks the C-API.
+# urllib3 2.x causes a RequestsDependencyWarning with older httpx/requests.
+RUN pip install --no-cache-dir \
+    "numpy<2.0.0" \
+    "urllib3<2.0.0"
+
+# ── Step 3: PyG + "Big Four" from matching pre-compiled wheel index ───────────
 RUN pip install --no-cache-dir \
     torch-scatter \
     torch-sparse \
@@ -31,7 +38,7 @@ RUN pip install --no-cache-dir \
     torch-geometric \
     -f https://data.pyg.org/whl/torch-2.1.0+cpu.html
 
-# ── Step 3: Remaining application dependencies ────────────────────────────────
+# ── Step 4: Remaining application dependencies ────────────────────────────────
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt && \
     pip cache purge

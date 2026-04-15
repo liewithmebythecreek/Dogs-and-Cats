@@ -5,6 +5,14 @@
 #       versions directly in the Dockerfile to avoid wheel-index conflicts.
 # ─────────────────────────────────────────────────────────────────────────────
 
+# ── Critical version pins (must match Dockerfile order) ──────────────────────────
+# PyTorch 2.1.0 was built against NumPy 1.x. NumPy 2.x changes the C-ABI
+# and will cause silent corruption or ImportError in torch-scatter/sparse.
+numpy<2.0.0
+# urllib3 2.x is incompatible with older httpx/requests and raises
+# RequestsDependencyWarning which can mask real connection errors.
+urllib3<2.0.0
+
 # API
 fastapi
 uvicorn
@@ -12,7 +20,6 @@ httpx
 
 # Data
 pandas
-numpy
 scikit-learn
 networkx
 geopy
