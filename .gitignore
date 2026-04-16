@@ -1,4 +1,4 @@
-# Model files
+# Model weights (tracked by DVC, not git)
 *.h5
 *.pkl
 *.pt
@@ -7,6 +7,12 @@
 *.weights
 /models/
 /model/
+
+# Runtime data files (generated at runtime — never commit)
+backend/data/forecast_log.jsonl
+backend/data/forecast_log.jsonl.old
+backend/data/recent_30d.pkl
+backend/data/*.pkl
 
 # Logs
 *.log
@@ -25,16 +31,21 @@ __pycache__/
 .coverage
 htmlcov/
 .cache/
+.cache.sqlite
+backend/.cache.sqlite
 node_modules/
 .npm/
 dist/
 build/
 .DS_Store
 
-# Ignore all markdown and text files
-*.md
-*.txt
+# Do NOT ignore markdown — docs are important
+# *.md   ← removed: was accidentally hiding all documentation
 
-# But keep README.md
+# But still ignore generated text outputs
+error_log.txt
+
+# Keep essential files even if patterns above would match
 !README.md
 !requirements.txt
+!backend/data/.gitkeep

@@ -3,14 +3,12 @@ import numpy as np
 from sklearn.preprocessing import MinMaxScaler
 import pickle
 import os
+import sys
 import torch
 
-DYNAMIC_FEATURES = [
-    'temperature_2m', 'relative_humidity_2m',
-    'wind_speed_10m', 'surface_pressure',
-    'precipitation', 'weather_code'
-]
-STATIC_FEATURES = ['sin_hour', 'cos_hour', 'elevation', 'lat', 'lon']
+# ── Shared constants (single source of truth) ─────────────────────────────────
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from shared_config import DYNAMIC_FEATURES, STATIC_FEATURES
 
 def preprocess_data(city_data: dict, time_steps: int = 48, future_steps: int = 48, scaler_path: str = None) -> tuple:
     cities = list(city_data.keys())

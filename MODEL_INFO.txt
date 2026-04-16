@@ -1,0 +1,52 @@
+# NeuralWeather Model Documentation
+
+## 1. Model Architecture
+The forecasting engine uses a Recurrent Neural Network (RNN) based on the Long Short-Term Memory (LSTM) architecture, which is highly effective for capturing temporal dependencies in time-series weather data.
+
+*   **Input Shape**: (samples, 24 hours, 6 features)
+*   **Layer 1**: LSTM (64 units) with `return_sequences=True`
+*   **Regulurization**: Dropout layer (20% rate) to prevent overfitting.
+*   **Layer 2**: LSTM (32 units)
+*   **Output Layer**: Dense (144 units) — flattened representation of (24 hours * 6 variables).
+*   **Optimizer**: Adam
+*   **Loss Function**: Mean Squared Error (MSE)
+*   **Metrics**: Mean Absolute Error (MAE), Root Mean Squared Error (RMSE)
+
+## 2. Hyperparameters & Settings
+We use different settings for the initial "cold start" and the daily continuous updates.
+
+| Feature            | Cold Start (Initial) | Fine-tuning (Daily) |
+|--------------------|----------------------|----------------------|
+| **Data Window**    | 2 Years              | Last 30 Days         |
+| **Max Epochs**     | 50                   | 10                   |
+| **Learning Rate**  | 0.001 (1e-3)         | 0.0001 (1e-4)        |
+| **Early Stopping** | Patience: 7          | Patience: 3          |
+| **Batch Size**     | 32                   | 32                   |
+
+*   **Time Steps**: 24 (Looks at the past 24 hours of data).
+*   **Future Steps**: 24 (Predicts the next 24 hours).
+
+## 3. Input Features (The 6 dimensions)
+The model processes and predicts six core weather variables:
+1.  `temperature_2m`: Air temperature at 2 meters.
+2.  `relative_humidity_2m`: Humidity percentage.
+3.  `wind_speed_10m`: Wind speed at 10 meters.
+4.  `surface_pressure`: Atmospheric pressure.
+5.  `precipitation`: Rainfall/snowmelt amount.
+6.  `weather_code`: WMO weather categorization.
+
+## 4. Continuous Training Pipeline (CI/CD/MLOps)
+The system is designed for **Incremental Learning** rather than total retraining.
+
+*   **Mechanism**: A GitHub Actions workflow (`.github/workflows/retrain.yml`) triggers every day at 00:00 UTC.
+*   **Data Source**: Fetches real-time archive data from the Open-Meteo API.
+*   **Persistent Scaler**: The `MinMaxScaler` is saved as `scaler.pkl`. It is only fitted once during the cold start to ensure all future new data is normalized relative to the same baseline.
+*   **Model Weights**: The `model.keras` file is loaded from the `backend/models/` directory. The optimizer resumes training with the current weights on the new 30-day window.
+*   **Saving**: Only if the validation loss improves (checked by `ModelCheckpoint`), the new weights are saved and committed back to GitHub automatically.
+
+## 5. Forecasting Flow
+1.  **Fetch**: The app gets the most recent 24 hours of data for the target coordinates.
+2.  **Scale**: Data is normalized using the fixed `scaler.pkl`.
+3.  **Predict**: The LSTM processes the sequence and outputs a batch of tomorrow's 24 hours.
+4.  **Inverse Transform**: Values are converted from [0,1] scale back to real-world units (Celsius, km/h, etc.).
+5.  **Serve**: Prediction is sent via the FastAPI endpoint to the React dashboard.

@@ -1,0 +1,127 @@
+name: MLOps — Drift Detection & Fine-tuning
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Runs on the 1st and 15th of every month at midnight UTC.
+# Uses a self-hosted runner on your i5 machine so PyTorch doesn't need
+# to be installed on GitHub's cloud infrastructure (which lacks the
+# right CUDA/CPU wheels and the forecast log file).
+#
+# Required GitHub secrets / variables:
+#   DVC_REMOTE_URL  — your DVC remote storage URL (e.g. s3://... or gdrive://...)
+#   GH_PAT          — a GitHub Personal Access Token with repo scope
+# ─────────────────────────────────────────────────────────────────────────────
+
+permissions:
+  contents: write
+
+
+on:
+  schedule:
+    - cron: '0 0 1,15 * *'    # 1st and 15th of each month at 00:00 UTC
+  workflow_dispatch:            # allow manual trigger from GitHub UI
+
+jobs:
+  drift-and-finetune:
+    runs-on: self-hosted         # executes on your local i5 machine
+
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+
+    steps:
+      # ── 1. Checkout ─────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      # ── 2. Set up Python (self-hosted already has it, but pin the version) ──
+      - name: Verify Python
+        run: python --version
+
+      # ── 3. Install / update dependencies ────────────────────────────────────
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+          pip install dvc
+
+      # ── 4. STEP 1 — Drift detection ──────────────────────────────────────────
+      - name: Run drift detection (monitor.py)
+        id: drift
+        # Exit code 0 = no drift, 1 = drift detected, 2 = insufficient data
+        run: python -m backend.monitor --threshold 2.0 --days 7
+        continue-on-error: true   # don't abort the job; we check outcome below
+
+      # ── 5. STEP 2 — Collect fresh training data (only if drift detected) ─────
+      - name: Collect 30-day training data
+        if: steps.drift.outcome == 'failure'   # exit code 1
+        run: |
+          echo "[mlops] Drift detected — collecting last 30 days of data …"
+          python - <<'EOF'
+          import datetime, sys, os
+          sys.path.insert(0, '.')
+          from backend.training.data_collector import fetch_historical_data, CITY_NAMES
+          import pickle, json
+
+          end   = datetime.date.today() - datetime.timedelta(days=2)
+          start = end - datetime.timedelta(days=30)
+          print(f"Fetching {start} → {end} for {len(CITY_NAMES)} cities …")
+          data  = fetch_historical_data(start.strftime('%Y-%m-%d'), end.strftime('%Y-%m-%d'))
+          os.makedirs('backend/data', exist_ok=True)
+          with open('backend/data/recent_30d.pkl', 'wb') as f:
+              pickle.dump(data, f)
+          print("Saved backend/data/recent_30d.pkl")
+          EOF
+
+      # ── 6. STEP 3 — Fine-tune (only if drift detected) ───────────────────────
+      - name: Fine-tune STGNN
+        if: steps.drift.outcome == 'failure'
+        id: finetune
+        run: |
+          python -m backend.training.train_model \
+            --finetune \
+            --epochs 5
+        continue-on-error: true
+
+      # ── 7. STEP 4 — Version weights with DVC and commit .dvc file ────────────
+      - name: Push new weights via DVC
+        if: steps.drift.outcome == 'failure' && steps.finetune.outcome == 'success'
+        env:
+          DVC_REMOTE_URL: ${{ secrets.DVC_REMOTE_URL }}
+        run: |
+          # Initialise DVC remote if not configured (first run)
+          if ! dvc remote list | grep -q 'myremote'; then
+            dvc remote add -d myremote "$DVC_REMOTE_URL"
+          fi
+
+          dvc add backend/models/stgnn.pt backend/models/stgnn_scaler.pkl
+          dvc push
+
+      - name: Commit updated DVC tracking files
+        if: steps.drift.outcome == 'failure' && steps.finetune.outcome == 'success'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add backend/models/stgnn.pt.dvc \
+                  backend/models/stgnn_scaler.pkl.dvc \
+                  .dvc/config \
+                  .gitignore
+          git diff --quiet && git diff --staged --quiet \
+            || git commit -m "mlops: fine-tuned STGNN weights (auto) [skip ci]"
+          git push
+
+      # ── 8. Summary ────────────────────────────────────────────────────────────
+      - name: Print run summary
+        if: always()
+        run: |
+          echo "drift_outcome  = ${{ steps.drift.outcome }}"
+          echo "finetune_outcome = ${{ steps.finetune.outcome }}"
+          if [ "${{ steps.drift.outcome }}" == "success" ]; then
+            echo "✅ No drift detected — model is healthy."
+          elif [ "${{ steps.finetune.outcome }}" == "success" ]; then
+            echo "✅ Drift resolved — model fine-tuned and weights pushed."
+          else
+            echo "⚠️ Drift detected but fine-tuning failed — manual intervention needed."
+          fi

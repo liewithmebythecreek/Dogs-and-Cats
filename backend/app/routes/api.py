@@ -3,6 +3,7 @@ import traceback
 from fastapi import APIRouter, HTTPException
 from app.services.weather_api import fetch_all_live_data, fetch_current_conditions
 from app.services.ml_service import ml_service
+from app.services.forecast_logger import log_forecast
 
 router = APIRouter()
 
@@ -102,6 +103,14 @@ async def get_forecast():
                 status_code=500,
                 detail=f"Model inference failed: {exc}"
             )
+
+    # ── Step 5: Persist predictions for drift detection ───────────────────────
+    if forecast:
+        try:
+            log_forecast(forecast)
+        except Exception:
+            # Never crash the response over logging failure
+            traceback.print_exc()
     else:
         print("[api /forecast] Model not ready – skipping inference, returning API-only response.")
 
