@@ -3,22 +3,19 @@ import numpy as np
 import pandas as pd
 from typing import Dict, Any
 import asyncio
+import sys
+import os
 
-# ── City graph ────────────────────────────────────────────────────────────────
-CITIES = {
-    "Ropar":      {"lat": 30.9750, "lon": 76.5273, "elevation": 260},
-    "Chandigarh": {"lat": 30.7333, "lon": 76.7794, "elevation": 321},
-    "Ludhiana":   {"lat": 30.9010, "lon": 75.8573, "elevation": 242},
-    "Patiala":    {"lat": 30.3398, "lon": 76.3869, "elevation": 250},
-    "Jalandhar":  {"lat": 31.3260, "lon": 75.5762, "elevation": 228},
-    "Ambala":     {"lat": 30.3782, "lon": 76.7767, "elevation": 264},
-    "Shimla":     {"lat": 31.1048, "lon": 77.1734, "elevation": 2276},
-}
-CITY_NAMES     = list(CITIES.keys())
-HOURLY_VARS    = ["temperature_2m", "relative_humidity_2m", "wind_speed_10m",
-                  "surface_pressure", "precipitation", "weather_code"]
-HISTORY_URL    = "https://api.open-meteo.com/v1/forecast"
-CURRENT_URL    = "https://api.open-meteo.com/v1/forecast"
+# ── Shared constants (single source of truth) ─────────────────────────────────
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..'))
+try:
+    from shared_config import CITIES, CITY_NAMES, DYNAMIC_FEATURES, FORECAST_URL
+except ImportError:
+    from backend.shared_config import CITIES, CITY_NAMES, DYNAMIC_FEATURES, FORECAST_URL
+
+HOURLY_VARS = DYNAMIC_FEATURES   # alias — Open-Meteo API variable names
+HISTORY_URL = FORECAST_URL
+CURRENT_URL = FORECAST_URL
 
 
 async def _fetch_one_city_history(client: httpx.AsyncClient, city: str) -> pd.DataFrame:

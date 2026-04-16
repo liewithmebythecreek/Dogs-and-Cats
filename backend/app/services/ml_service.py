@@ -12,22 +12,29 @@ try:
     import torch
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
     from models.stgnn import WeatherSTGNN
-    from training.data_collector import CITIES, CITY_NAMES, NUM_NODES, build_graph_edges
+    from training.data_collector import build_graph_edges
     TORCH_AVAILABLE = True
 except ImportError as e:
     print(f"[ml_service] PyTorch/STGNN not available: {e}")
     traceback.print_exc()
     TORCH_AVAILABLE = False
 
-DYNAMIC_FEATURES = [
-    'temperature_2m', 'relative_humidity_2m',
-    'wind_speed_10m', 'surface_pressure',
-    'precipitation', 'weather_code'
-]
-STATIC_FEATURES = ['sin_hour', 'cos_hour', 'elevation', 'lat', 'lon']
-TIME_STEPS   = 48
-FUTURE_STEPS = 48
-HIDDEN_DIM   = 64
+
+# ── Shared constants (single source of truth) ─────────────────────────────────
+try:
+    from shared_config import (
+        DYNAMIC_FEATURES, STATIC_FEATURES,
+        CITY_NAMES, NUM_NODES,
+        TIME_STEPS, FUTURE_STEPS, HIDDEN_DIM,
+        MODEL_PATH, SCALER_PATH, GRAPH_THRESHOLD_KM,
+    )
+except ImportError:
+    from backend.shared_config import (
+        DYNAMIC_FEATURES, STATIC_FEATURES,
+        CITY_NAMES, NUM_NODES,
+        TIME_STEPS, FUTURE_STEPS, HIDDEN_DIM,
+        MODEL_PATH, SCALER_PATH, GRAPH_THRESHOLD_KM,
+    )
 
 
 def _build_adj(edges, num_nodes, device):
@@ -49,8 +56,8 @@ class STGNNInferenceService:
         self.model       = None
         self.scalers     = None   # dict[city -> MinMaxScaler]
         self.adj         = None   # pre-built adjacency tensor
-        self.model_path  = "backend/models/stgnn.pt"
-        self.scaler_path = "backend/models/stgnn_scaler.pkl"
+        self.model_path  = MODEL_PATH
+        self.scaler_path = SCALER_PATH
         self.is_ready    = False
         self._load_artifacts()
 
@@ -85,7 +92,7 @@ class STGNNInferenceService:
                 self.scalers = pickle.load(f)
 
             # Build adjacency once
-            edges, _ = build_graph_edges(threshold_km=200.0)
+            edges, _ = build_graph_edges(threshold_km=GRAPH_THRESHOLD_KM)
             self.adj  = _build_adj(edges, NUM_NODES, device)
 
             self.is_ready = True

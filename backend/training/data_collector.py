@@ -5,25 +5,23 @@ import numpy as np
 from retry_requests import retry
 import datetime
 from geopy.distance import geodesic
+import sys
+import os
+
+# ── Shared constants ──────────────────────────────────────────────────────
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+from shared_config import (
+    CITIES, CITY_NAMES, NUM_NODES,
+    DYNAMIC_FEATURES, GRAPH_THRESHOLD_KM, ARCHIVE_URL,
+)
+
 
 cache_session = requests_cache.CachedSession('.cache', expire_after=-1)
 retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
 openmeteo = openmeteo_requests.Client(session=retry_session)
 
-CITIES = {
-    "Ropar": {"lat": 30.9750, "lon": 76.5273, "elevation": 260},
-    "Chandigarh": {"lat": 30.7333, "lon": 76.7794, "elevation": 321},
-    "Ludhiana": {"lat": 30.9010, "lon": 75.8573, "elevation": 242},
-    "Patiala": {"lat": 30.3398, "lon": 76.3869, "elevation": 250},
-    "Jalandhar": {"lat": 31.3260, "lon": 75.5762, "elevation": 228},
-    "Ambala": {"lat": 30.3782, "lon": 76.7767, "elevation": 264},
-    "Shimla": {"lat": 31.1048, "lon": 77.1734, "elevation": 2276}
-}
 
-CITY_NAMES = list(CITIES.keys())
-NUM_NODES = len(CITY_NAMES)
-
-def build_graph_edges(threshold_km=200.0):
+def build_graph_edges(threshold_km=GRAPH_THRESHOLD_KM):
     edges = []
     edge_attr = []
     for i, city_i in enumerate(CITY_NAMES):
@@ -38,17 +36,17 @@ def build_graph_edges(threshold_km=200.0):
     return edges, edge_attr
 
 def fetch_historical_data(start_date: str, end_date: str) -> dict:
-    url = "https://archive-api.open-meteo.com/v1/archive"
+    url = ARCHIVE_URL
     
     lats = [CITIES[name]["lat"] for name in CITY_NAMES]
     lons = [CITIES[name]["lon"] for name in CITY_NAMES]
 
     params = {
-        "latitude": lats,
+        "latitude":  lats,
         "longitude": lons,
         "start_date": start_date,
-        "end_date": end_date,
-        "hourly": ["temperature_2m", "relative_humidity_2m", "wind_speed_10m", "surface_pressure", "precipitation", "weather_code"]
+        "end_date":   end_date,
+        "hourly":     DYNAMIC_FEATURES,
     }
     
     responses = openmeteo.weather_api(url, params=params)
