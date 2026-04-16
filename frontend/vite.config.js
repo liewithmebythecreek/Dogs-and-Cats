@@ -12,4 +12,13 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    proxy: {
+      // Forward all FastAPI routes to the uvicorn backend
+      '/health':  { target: 'http://localhost:8000', changeOrigin: true },
+      '/current': { target: 'http://localhost:8000', changeOrigin: true },
+      '/forecast':{ target: 'http://localhost:8000', changeOrigin: true },
+    },
+  },
 })
+

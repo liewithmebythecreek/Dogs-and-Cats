@@ -1,151 +1,170 @@
-import React from 'react';
+/**
+ * ForecastCharts.jsx
+ * Full-width single-variable AreaChart — the "weather map" equivalent.
+ * Shows all 48h of the selected variable; a ReferenceLine moves with playback.
+ */
+import React, { useMemo } from 'react'
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer,
-} from 'recharts';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
-} from '@/components/ui/chart';
+  AreaChart, Area, XAxis, YAxis, CartesianGrid,
+  ReferenceLine, ResponsiveContainer, Tooltip,
+} from 'recharts'
+import { VARIABLES } from './ControlPanel'
 
-// ── Chart colour configs ───────────────────────────────────────────────────────
-const configTemp = {
-  temperature_2m: { label: 'Temperature (°C)', color: '#f59e0b' },
-};
-const configHumidity = {
-  relative_humidity_2m: { label: 'Humidity (%)', color: '#06b6d4' },
-};
-const configWind = {
-  wind_speed_10m: { label: 'Wind (km/h)', color: '#a78bfa' },
-};
-const configPrecip = {
-  precipitation: { label: 'Precip. (mm)', color: '#34d399' },
-};
-
-// ── Helper: build tick labels (h+1, h+6, h+12 …) ─────────────────────────────
-function buildChartData(forecastSteps) {
-  return forecastSteps.map((step, idx) => ({
-    label: `+${step.hour}h`,
-    temperature_2m:       step.temperature_2m,
-    relative_humidity_2m: step.relative_humidity_2m,
-    wind_speed_10m:       step.wind_speed_10m,
-    precipitation:        step.precipitation,
-  }));
-}
-
-// ── Shared mini-chart card ─────────────────────────────────────────────────────
-function MetricChart({ title, dotColor, config, dataKey, data, unit = '' }) {
+/* Custom tooltip styled to match the dark theme */
+const CustomTooltip = ({ active, payload, label, unit, color }) => {
+  if (!active || !payload?.length) return null
   return (
-    <Card className="bg-slate-900/50 border-white/5 backdrop-blur-md transition-all">
-      <CardHeader className="pb-2">
-        <CardTitle
-          className="text-lg font-semibold flex items-center gap-2"
-          style={{ fontFamily: 'Outfit, sans-serif', color: '#e2e8f0' }}
-        >
-          <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: dotColor }} />
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="h-[240px] w-full">
-          <ChartContainer config={config} className="w-full h-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={data} margin={{ top: 5, right: 16, bottom: 5, left: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#ffffff12" vertical={false} />
-                <XAxis
-                  dataKey="label"
-                  stroke="#94a3b8"
-                  tick={{ fill: '#94a3b8', fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={false}
-                  interval={5}
-                  dy={8}
-                />
-                <YAxis
-                  stroke="#94a3b8"
-                  tick={{ fill: '#94a3b8', fontSize: 11 }}
-                  tickLine={false}
-                  axisLine={false}
-                  dx={-6}
-                />
-                <ChartTooltip
-                  content={<ChartTooltipContent />}
-                  formatter={(v) => [`${v} ${unit}`, '']}
-                />
-                <ChartLegend
-                  content={<ChartLegendContent />}
-                  wrapperStyle={{ paddingTop: '12px' }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey={dataKey}
-                  stroke={dotColor}
-                  strokeWidth={2.5}
-                  dot={false}
-                  activeDot={{ r: 5, strokeWidth: 0 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </ChartContainer>
-        </div>
-      </CardContent>
-    </Card>
-  );
+    <div
+      className="rounded-lg px-3 py-2 text-xs shadow-2xl border"
+      style={{ background: '#0d1117', borderColor: `${color}40` }}
+    >
+      <p className="text-slate-400 mb-1">{label}</p>
+      <p className="font-bold" style={{ color }}>
+        {Number(payload[0].value).toFixed(1)} {unit}
+      </p>
+    </div>
+  )
 }
 
-// ── Main export ───────────────────────────────────────────────────────────────
-const ForecastCharts = ({ forecastSteps = [], cityName }) => {
-  if (!forecastSteps || forecastSteps.length === 0) {
+/* Mini stat pill shown in the top-right corner of the chart */
+const StatPill = ({ label, value, color }) => (
+  <div
+    className="flex flex-col items-center px-3 py-1.5 rounded-lg border"
+    style={{ background: `${color}12`, borderColor: `${color}30` }}
+  >
+    <span className="text-[10px] text-slate-500 uppercase tracking-wider">{label}</span>
+    <span className="text-sm font-bold tabular-nums" style={{ color }}>{value}</span>
+  </div>
+)
+
+export default function ForecastChart({ forecastSteps = [], selectedVar, currentStep }) {
+  const varMeta = VARIABLES.find(v => v.key === selectedVar) ?? VARIABLES[0]
+
+  /* Build recharts data array */
+  const data = useMemo(() =>
+    forecastSteps.map(s => ({
+      label:  `+${s.hour}h`,
+      value:  s[selectedVar],
+      hour:   s.hour,
+    })), [forecastSteps, selectedVar])
+
+  /* Stats */
+  const values    = data.map(d => d.value).filter(Boolean)
+  const valMin    = values.length ? Math.min(...values).toFixed(1) : '—'
+  const valMax    = values.length ? Math.max(...values).toFixed(1) : '—'
+  const valCurrent= data[currentStep]?.value?.toFixed(1) ?? '—'
+
+  const color = varMeta.color
+
+  if (!forecastSteps.length) {
     return (
-      <div className="flex items-center justify-center h-40 text-slate-500">
-        {cityName
-          ? `No forecast data available for ${cityName}.`
-          : 'Select a city to view the 48-hour forecast.'}
+      <div className="flex-1 flex flex-col items-center justify-center gap-3 text-slate-600">
+        <div className="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center">
+          <varMeta.icon className="w-6 h-6" />
+        </div>
+        <p className="text-sm">No forecast data — model may be loading</p>
       </div>
-    );
+    )
   }
 
-  const data = buildChartData(forecastSteps);
-
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full mt-2">
-      <MetricChart
-        title="Temperature · 48 h"
-        dotColor="#f59e0b"
-        config={configTemp}
-        dataKey="temperature_2m"
-        data={data}
-        unit="°C"
-      />
-      <MetricChart
-        title="Humidity · 48 h"
-        dotColor="#06b6d4"
-        config={configHumidity}
-        dataKey="relative_humidity_2m"
-        data={data}
-        unit="%"
-      />
-      <MetricChart
-        title="Wind Speed · 48 h"
-        dotColor="#a78bfa"
-        config={configWind}
-        dataKey="wind_speed_10m"
-        data={data}
-        unit="km/h"
-      />
-      <MetricChart
-        title="Precipitation · 48 h"
-        dotColor="#34d399"
-        config={configPrecip}
-        dataKey="precipitation"
-        data={data}
-        unit="mm"
-      />
-    </div>
-  );
-};
+    <div className="flex-1 flex flex-col min-h-0 px-4 pt-3 pb-2">
+      {/* ── Chart header ──────────────────────────────────────────────── */}
+      <div className="flex items-center justify-between mb-3 shrink-0">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-1 self-stretch rounded-full"
+            style={{ background: `linear-gradient(to bottom, ${color}, ${color}44)` }}
+          />
+          <div>
+            <h2 className="text-white font-semibold text-sm leading-none">
+              {varMeta.label}
+              <span className="text-slate-500 font-normal text-xs ml-2">48-hour forecast</span>
+            </h2>
+            <p className="text-slate-600 text-[11px] mt-1">
+              Graph-LSTM · {varMeta.unit} · 1h resolution
+            </p>
+          </div>
+        </div>
+        {/* Stat pills */}
+        <div className="flex gap-2">
+          <StatPill label="Current" value={`${valCurrent} ${varMeta.unit}`} color={color} />
+          <StatPill label="Min"     value={`${valMin} ${varMeta.unit}`}    color="#64748b" />
+          <StatPill label="Max"     value={`${valMax} ${varMeta.unit}`}    color="#94a3b8" />
+        </div>
+      </div>
 
-export default ForecastCharts;
+      {/* ── Area chart ────────────────────────────────────────────────── */}
+      <div className="flex-1 min-h-0">
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={data} margin={{ top: 8, right: 24, bottom: 4, left: 0 }}>
+            <defs>
+              <linearGradient id={`grad-${selectedVar}`} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"   stopColor={color} stopOpacity={0.35} />
+                <stop offset="75%"  stopColor={color} stopOpacity={0.05} />
+                <stop offset="100%" stopColor={color} stopOpacity={0} />
+              </linearGradient>
+            </defs>
+
+            <CartesianGrid
+              strokeDasharray="3 3"
+              stroke="#ffffff09"
+              vertical={false}
+            />
+
+            <XAxis
+              dataKey="label"
+              stroke="transparent"
+              tick={{ fill: '#475569', fontSize: 10 }}
+              tickLine={false}
+              axisLine={false}
+              interval={5}
+              dy={6}
+            />
+            <YAxis
+              stroke="transparent"
+              tick={{ fill: '#475569', fontSize: 10 }}
+              tickLine={false}
+              axisLine={false}
+              dx={-4}
+              width={40}
+            />
+
+            <Tooltip
+              content={<CustomTooltip unit={varMeta.unit} color={color} />}
+              cursor={{ stroke: `${color}50`, strokeWidth: 1, strokeDasharray: '4 2' }}
+            />
+
+            {/* Moving reference line = current playback step */}
+            {data[currentStep] && (
+              <ReferenceLine
+                x={data[currentStep].label}
+                stroke={color}
+                strokeWidth={1.5}
+                strokeDasharray="0"
+                label={{
+                  value: `▼ T+${currentStep+1}h`,
+                  position: 'top',
+                  fill: color,
+                  fontSize: 10,
+                  fontWeight: 700,
+                }}
+              />
+            )}
+
+            <Area
+              type="monotone"
+              dataKey="value"
+              stroke={color}
+              strokeWidth={2}
+              fill={`url(#grad-${selectedVar})`}
+              dot={false}
+              activeDot={{ r: 5, fill: color, strokeWidth: 0, style: { filter: `drop-shadow(0 0 4px ${color})` } }}
+              isAnimationActive={false}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  )
+}

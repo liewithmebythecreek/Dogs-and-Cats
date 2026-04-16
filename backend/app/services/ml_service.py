@@ -142,11 +142,21 @@ class STGNNInferenceService:
         window = data[-TIME_STEPS:]
         tensor = torch.FloatTensor(window).unsqueeze(0)   # [1, T, N, F]
 
+        # ── Diagnostic 1: input shape ─────────────────────────────────────────
         print(
             f"[ml_service] Input tensor shape: {list(tensor.shape)} "
             f"(expected [1, {TIME_STEPS}, {NUM_NODES}, "
             f"{len(DYNAMIC_FEATURES) + len(STATIC_FEATURES)}])"
         )
+
+        # ── Diagnostic 2: input variance (near-zero = static/flat input) ──────
+        dyn_slice = tensor[0, :, :, :len(DYNAMIC_FEATURES)]   # [T, N, 6]
+        per_feat_std = dyn_slice.std(dim=0).mean(dim=0)       # [6] mean std across nodes
+        print("[ml_service] Input std per dynamic feature (0=flat, >0.01=ok):")
+        for feat, std_val in zip(DYNAMIC_FEATURES, per_feat_std.tolist()):
+            flag = "⚠ FLAT" if std_val < 0.005 else "ok"
+            print(f"  {feat:30s}: std={std_val:.4f}  {flag}")
+
         return tensor
 
     def predict(self, city_dfs: Dict[str, pd.DataFrame]) -> Dict[str, List[Dict[str, Any]]]:
@@ -166,20 +176,34 @@ class STGNNInferenceService:
             x   = self.preprocess_graph_input(city_dfs)       # [1, T, N, F]
             adj = self.adj.unsqueeze(0)                        # [1, N, N]
 
-            # ── 3. Forward pass (no_grad saves memory, prevents graph build) ──
+            # ── Diagnostic 3: adjacency edge count ───────────────────────────
+            edge_count = int((self.adj > 0).sum().item()) - NUM_NODES  # subtract self-loops
+            print(f"[ml_service] Adjacency: {edge_count} directed edges "
+                  f"(0 = graph is disconnected, GCN is useless!)")
+
+            # ── 3. Forward pass ───────────────────────────────────────────────
             with torch.no_grad():
                 preds = self.model(x, adj, future_steps=FUTURE_STEPS)  # [1, 48, N, 6]
 
-            print(f"[ml_service] Output tensor shape: {list(preds.shape)}")
-
+            # ── Diagnostic 4: raw output diversity ───────────────────────────
             preds_np = preds.squeeze(0).numpy()   # [48, N, 6]
+            raw_std   = preds_np.std(axis=0).mean()  # mean std across nodes & features over time
+            print(f"[ml_service] Raw output std over 48 steps: {raw_std:.5f} "
+                  f"({'⚠ NEAR ZERO — model predicts constants' if raw_std < 0.001 else 'ok — predictions vary'})")
+            print(f"[ml_service] Output tensor shape: {list(preds.shape)}")
 
             # ── 4. Inverse-transform and structure results ────────────────────
             result = {}
             for i, city in enumerate(CITY_NAMES):
                 scaler     = self.scalers[city]
-                city_preds = preds_np[:, i, :]                # [48, 6]
-                city_inv   = scaler.inverse_transform(city_preds)  # [48, 6]
+                city_preds = preds_np[:, i, :]                      # [48, 6]
+                city_inv   = scaler.inverse_transform(city_preds)   # [48, 6]
+
+                # Diagnostic 5: per-city output range after inverse-transform
+                temp_range = city_inv[:, 0].max() - city_inv[:, 0].min()
+                print(f"  [{city}] temp range after inv-transform: "
+                      f"{city_inv[:,0].min():.1f}–{city_inv[:,0].max():.1f} °C  "
+                      f"(spread={temp_range:.2f}°C {'⚠ FLAT' if temp_range < 0.5 else 'ok'})")
 
                 steps = []
                 for h in range(FUTURE_STEPS):

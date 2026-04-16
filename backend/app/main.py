@@ -10,18 +10,12 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS setup for React frontend
-origins = [
-    "http://localhost:3000",
-    "http://localhost",
-    "http://127.0.0.1",
-    "http://127.0.0.1:3000"
-]
-
+# CORS — allow all origins in local dev (uvicorn is only bound to localhost)
+# For production, replace "*" with the exact deployed frontend URL.
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,   # must be False when allow_origins="*"
     allow_methods=["*"],
     allow_headers=["*"],
 )
