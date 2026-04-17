@@ -106,4 +106,13 @@ class WeatherSTGNN(nn.Module):
             pred_dyn = (pred_dyn + residual).clamp(0.0, 1.0)  # stay in scaled space
             outputs.append(pred_dyn.unsqueeze(1))              # [B, 1, N, dyn]
 
+            # --- Advance Cyclical Time Features for next step ---
+            # stat_feat[:, :, 0] is sin_hour, stat_feat[:, :, 1] is cos_hour
+            next_stat = stat_feat.clone()
+            curr_angle = torch.atan2(stat_feat[:, :, 0], stat_feat[:, :, 1])
+            next_angle = curr_angle + (2.0 * torch.pi / 24.0)
+            next_stat[:, :, 0] = torch.sin(next_angle)
+            next_stat[:, :, 1] = torch.cos(next_angle)
+            stat_feat = next_stat
+
         return torch.cat(outputs, dim=1)   # [B, future_steps, N, dyn]

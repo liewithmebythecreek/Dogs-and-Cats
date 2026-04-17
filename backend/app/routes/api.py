@@ -1,7 +1,8 @@
+import asyncio
 import datetime
 import traceback
 from fastapi import APIRouter, HTTPException
-from app.services.weather_api import fetch_all_live_data, fetch_current_conditions
+from app.services.weather_api import fetch_all_live_data, fetch_current_conditions, fetch_all_openmeteo_forecast
 from app.services.ml_service import ml_service
 from app.services.forecast_logger import log_forecast
 
@@ -47,9 +48,12 @@ async def get_forecast():
       "forecast": { <city>: [ { hour, temperature_2m, ... }, ... ], ... }
     }
     """
-    # ── Step 1: Fetch live feature streams for all 7 nodes concurrently ───────
+    # ── Step 1: Fetch live history + OM future forecast concurrently ──────────
     try:
-        city_dfs = await fetch_all_live_data()
+        city_dfs, om_forecast = await asyncio.gather(
+            fetch_all_live_data(),
+            fetch_all_openmeteo_forecast(),
+        )
     except Exception as exc:
         print("[api /forecast] ERROR fetching live data from Open-Meteo:")
         traceback.print_exc()
@@ -125,6 +129,7 @@ async def get_forecast():
             "horizon":    "48h",
             "nodes":      list(city_dfs.keys()),
         },
-        "current":  current,
-        "forecast": forecast,
+        "current":            current,
+        "openmeteo_forecast": om_forecast,   # Open-Meteo native 48h forecast
+        "forecast":           forecast,       # STGNN Graph-LSTM prediction
     }

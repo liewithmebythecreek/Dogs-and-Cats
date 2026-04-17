@@ -61,6 +61,59 @@ async def fetch_all_live_data() -> Dict[str, pd.DataFrame]:
     return city_data
 
 
+async def _fetch_one_city_om_forecast(client: httpx.AsyncClient, city: str) -> list:
+    """
+    Fetch Open-Meteo's own 48-hour future forecast for a single city.
+    Returns a list of 48 dicts matching the STGNN output schema:
+      [{ hour, temperature_2m, relative_humidity_2m, wind_speed_10m,
+         surface_pressure, precipitation, weather_code }, ...]
+    """
+    info   = CITIES[city]
+    params = {
+        "latitude":       info["lat"],
+        "longitude":      info["lon"],
+        "forecast_hours": 48,
+        "hourly":         HOURLY_VARS,
+        "wind_speed_unit": "kmh",
+    }
+    res = await client.get(FORECAST_URL, params=params, timeout=15)
+    res.raise_for_status()
+    raw = res.json()["hourly"]
+
+    steps = []
+    for h in range(min(48, len(raw["time"]))):
+        steps.append({
+            "hour":                 h + 1,
+            "temperature_2m":       round(float(raw["temperature_2m"][h]       or 0), 2),
+            "relative_humidity_2m": round(float(raw["relative_humidity_2m"][h] or 0), 2),
+            "wind_speed_10m":       round(float(raw["wind_speed_10m"][h]       or 0), 2),
+            "surface_pressure":     round(float(raw["surface_pressure"][h]     or 0), 2),
+            "precipitation":        round(float(raw["precipitation"][h]        or 0), 2),
+            "weather_code":         int(raw["weather_code"][h] or 0),
+        })
+    return steps
+
+
+async def fetch_all_openmeteo_forecast() -> Dict[str, list]:
+    """
+    Fetch Open-Meteo's native 48-hour forecast for all 7 cities concurrently.
+    Returns { city: [48 hourly dicts] } — same shape as STGNN output.
+    """
+    async with httpx.AsyncClient() as client:
+        tasks = {city: _fetch_one_city_om_forecast(client, city) for city in CITY_NAMES}
+        results = await asyncio.gather(*tasks.values(), return_exceptions=True)
+
+    city_forecast = {}
+    for city, result in zip(tasks.keys(), results):
+        if isinstance(result, Exception):
+            print(f"[weather_api] OM forecast failed for {city}: {result}")
+            city_forecast[city] = []
+        else:
+            city_forecast[city] = result
+
+    return city_forecast
+
+
 async def fetch_current_conditions() -> Dict[str, Any]:
     """Fetch the current (latest) observation for every node."""
     async with httpx.AsyncClient() as client:

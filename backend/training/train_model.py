@@ -53,15 +53,28 @@ def create_adj_matrix(edges, num_nodes, device):
     return adj / deg
 
 
-def weighted_mse_loss(pred, target, device, decay_rate=0.05):
-    """Weight near-term forecast steps more heavily than far-future steps."""
+def weighted_mse_loss(pred, target, device, decay_rate=0.05, var_lambda=0.1):
+    """
+    Time-Weighted MSE + Temporal Variance Loss.
+    Encourages maintaining structural variance (wiggles) instead of a flat mean.
+    """
     future_steps = pred.size(1)
     weights = torch.exp(
         -torch.arange(future_steps, dtype=torch.float32) * decay_rate
     ).to(device)
     weights = (weights / weights.sum()) * future_steps
     weights = weights.view(1, future_steps, 1, 1)
-    return ((pred - target) ** 2 * weights).mean()
+    
+    # 1. Base MSE
+    mse_loss = ((pred - target) ** 2 * weights).mean()
+    
+    # 2. Temporal Variance Loss
+    # Standard deviation over the time dimension (dim=1)
+    std_pred   = pred.std(dim=1)
+    std_target = target.std(dim=1)
+    var_loss   = var_lambda * torch.abs(std_target - std_pred).mean()
+    
+    return mse_loss + var_loss
 
 
 def freeze_gcn_layers(model: WeatherSTGNN):

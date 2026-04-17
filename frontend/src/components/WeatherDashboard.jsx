@@ -35,6 +35,7 @@ export default function WeatherDashboard() {
   const [isPlaying,    setIsPlaying]    = useState(false)
   const [loop,         setLoop]         = useState(true)
   const [speed,        setSpeed]        = useState(600)  // ms per frame
+  const [forecastSource, setForecastSource] = useState('openmeteo') // 'openmeteo' | 'model'
 
   const playRef = useRef(null)
 
@@ -49,6 +50,7 @@ export default function WeatherDashboard() {
       ])
       setCurrentData(current)
       setForecastData(graph)
+      // Chart uses Open-Meteo native forecast; model forecast kept for reference
       setModelReady(!!(graph?.forecast && Object.keys(graph.forecast).length > 0))
       setLastUpdated(new Date().toLocaleTimeString())
       setCurrentStep(0)
@@ -81,7 +83,9 @@ export default function WeatherDashboard() {
   }, [isPlaying, loop, speed])
 
   // ── Derived ──────────────────────────────────────────────────────────────────
-  const cityForecast = forecastData?.forecast?.[selectedCity] ?? []
+  const cityForecast = forecastSource === 'openmeteo'
+    ? forecastData?.openmeteo_forecast?.[selectedCity] ?? []
+    : forecastData?.forecast?.[selectedCity] ?? []
   const forecastDate = (() => {
     const d = new Date()
     d.setMinutes(0, 0, 0)
@@ -112,6 +116,30 @@ export default function WeatherDashboard() {
           <span className="font-bold text-white tracking-tight text-sm">NeuralWeather</span>
           <span className="hidden sm:block text-slate-600 text-sm">|</span>
           <span className="hidden sm:block text-slate-500 text-xs">GraphCast-style ML Forecast</span>
+          
+          {/* Source Toggle */}
+          <div className="hidden md:flex items-center ml-2 bg-[#0d1320] rounded-full p-0.5 border border-white/5">
+            <button
+              onClick={() => setForecastSource('openmeteo')}
+              className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wide transition-colors ${
+                forecastSource === 'openmeteo' 
+                  ? 'bg-sky-500/20 text-sky-400' 
+                  : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              Open-Meteo
+            </button>
+            <button
+              onClick={() => setForecastSource('model')}
+              className={`px-2.5 py-0.5 rounded-full text-[10px] font-semibold tracking-wide transition-colors ${
+                forecastSource === 'model' 
+                  ? 'bg-orange-500/20 text-orange-400' 
+                  : 'text-slate-500 hover:text-slate-300'
+              }`}
+            >
+              Model
+            </button>
+          </div>
         </div>
 
         <Separator orientation="vertical" className="h-5 bg-white/10" />
@@ -211,7 +239,11 @@ export default function WeatherDashboard() {
                   }
                 </span>
               </h1>
-              <p className="text-slate-600 text-[11px] mt-0.5">Machine learning · Graph-LSTM</p>
+              <p className="text-slate-600 text-[11px] mt-0.5">
+                {forecastSource === 'openmeteo' 
+                  ? 'Open-Meteo · 48-h native forecast'
+                  : 'Machine learning · STGNN inference'}
+              </p>
             </div>
 
             {/* SELECT DIMENSIONS hint */}
