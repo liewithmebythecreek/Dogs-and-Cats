@@ -1,0 +1,5 @@
+outs:
+- md5: ad19a1b0a196d3da1b2cce3576e6da26
+  size: 183057
+  hash: md5
+  path: stgnn.pt
