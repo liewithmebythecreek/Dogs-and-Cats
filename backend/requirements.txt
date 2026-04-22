@@ -27,6 +27,7 @@ geopy
 # Schema / config
 pydantic
 python-dotenv
+mlflow
 
 # Weather data ingestion
 openmeteo-requests

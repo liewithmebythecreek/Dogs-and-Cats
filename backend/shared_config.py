@@ -49,9 +49,11 @@ CITY_NAMES = list(CITIES.keys())
 # ── Graph edge threshold ───────────────────────────────────────────────────────
 GRAPH_THRESHOLD_KM = 200.0   # cities within this distance get an edge
 
-# ── Artifact paths (relative to project root) ─────────────────────────────────
-MODEL_PATH  = 'backend/models/stgnn.pt'
-SCALER_PATH = 'backend/models/stgnn_scaler.pkl'
+# ── Artifact paths (absolute based on this file's location) ───────────────────
+import os
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+MODEL_PATH  = os.path.join(BASE_DIR, 'models', 'stgnn.pt')
+SCALER_PATH = os.path.join(BASE_DIR, 'models', 'stgnn_scaler.pkl')
 
 # ── Open-Meteo API ────────────────────────────────────────────────────────────
 FORECAST_URL = "https://api.open-meteo.com/v1/forecast"

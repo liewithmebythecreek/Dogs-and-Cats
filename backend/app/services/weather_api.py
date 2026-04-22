@@ -16,6 +16,7 @@ except ImportError:
 HOURLY_VARS = DYNAMIC_FEATURES   # alias — Open-Meteo API variable names
 HISTORY_URL = FORECAST_URL
 CURRENT_URL = FORECAST_URL
+LOCAL_TIMEZONE = "Asia/Kolkata"
 
 
 async def _fetch_one_city_history(client: httpx.AsyncClient, city: str) -> pd.DataFrame:
@@ -32,7 +33,7 @@ async def _fetch_one_city_history(client: httpx.AsyncClient, city: str) -> pd.Da
     res.raise_for_status()
     raw  = res.json()["hourly"]
 
-    times = pd.to_datetime(raw["time"])
+    times = pd.to_datetime(raw["time"], utc=True).tz_convert(LOCAL_TIMEZONE)
     df    = pd.DataFrame({feat: raw[feat] for feat in HOURLY_VARS}, index=times)
     df    = df.ffill().bfill()
 

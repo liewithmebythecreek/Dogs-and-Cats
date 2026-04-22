@@ -13,6 +13,7 @@ try:
     sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
     from models.stgnn import WeatherSTGNN
     from training.data_collector import build_graph_edges
+    from training.preprocess import transform_static_features
     TORCH_AVAILABLE = True
 except ImportError as e:
     print(f"[ml_service] PyTorch/STGNN not available: {e}")
@@ -141,7 +142,7 @@ class STGNNInferenceService:
             df = df.ffill().bfill()
 
             dyn = self.scalers[city].transform(df[DYNAMIC_FEATURES])
-            sta = df[STATIC_FEATURES].values
+            sta = transform_static_features(df).values
             data[:, i, :len(DYNAMIC_FEATURES)] = dyn
             data[:, i, len(DYNAMIC_FEATURES):]  = sta
 
@@ -161,7 +162,7 @@ class STGNNInferenceService:
         per_feat_std = dyn_slice.std(dim=0).mean(dim=0)       # [6] mean std across nodes
         print("[ml_service] Input std per dynamic feature (0=flat, >0.01=ok):")
         for feat, std_val in zip(DYNAMIC_FEATURES, per_feat_std.tolist()):
-            flag = "⚠ FLAT" if std_val < 0.005 else "ok"
+            flag = "WARN FLAT" if std_val < 0.005 else "ok"
             print(f"  {feat:30s}: std={std_val:.4f}  {flag}")
 
         return tensor
@@ -196,7 +197,7 @@ class STGNNInferenceService:
             preds_np = preds.squeeze(0).numpy()   # [48, N, 6]
             raw_std   = preds_np.std(axis=0).mean()  # mean std across nodes & features over time
             print(f"[ml_service] Raw output std over 48 steps: {raw_std:.5f} "
-                  f"({'⚠ NEAR ZERO — model predicts constants' if raw_std < 0.001 else 'ok — predictions vary'})")
+                  f"({'WARN NEAR ZERO - model predicts constants' if raw_std < 0.001 else 'ok - predictions vary'})")
             print(f"[ml_service] Output tensor shape: {list(preds.shape)}")
 
             # ── 4. Inverse-transform and structure results ────────────────────
@@ -210,7 +211,7 @@ class STGNNInferenceService:
                 temp_range = city_inv[:, 0].max() - city_inv[:, 0].min()
                 print(f"  [{city}] temp range after inv-transform: "
                       f"{city_inv[:,0].min():.1f}–{city_inv[:,0].max():.1f} °C  "
-                      f"(spread={temp_range:.2f}°C {'⚠ FLAT' if temp_range < 0.5 else 'ok'})")
+                      f"(spread={temp_range:.2f}°C {'WARN FLAT' if temp_range < 0.5 else 'ok'})")
 
                 steps = []
                 for h in range(FUTURE_STEPS):

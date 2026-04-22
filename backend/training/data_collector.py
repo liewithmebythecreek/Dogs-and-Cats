@@ -19,6 +19,7 @@ from shared_config import (
 cache_session = requests_cache.CachedSession('.cache', expire_after=-1)
 retry_session = retry(cache_session, retries=5, backoff_factor=0.2)
 openmeteo = openmeteo_requests.Client(session=retry_session)
+LOCAL_TIMEZONE = "Asia/Kolkata"
 
 
 def build_graph_edges(threshold_km=GRAPH_THRESHOLD_KM):
@@ -63,13 +64,14 @@ def fetch_historical_data(start_date: str, end_date: str) -> dict:
         precipitation = hourly.Variables(4).ValuesAsNumpy()
         weather_code = hourly.Variables(5).ValuesAsNumpy()
         
-        dates = pd.date_range(
+        dates_utc = pd.date_range(
             start=pd.to_datetime(hourly.Time(), unit="s", utc=True),
             end=pd.to_datetime(hourly.TimeEnd(), unit="s", utc=True),
             freq=pd.Timedelta(seconds=hourly.Interval()),
             inclusive="left"
         )
-        
+
+        dates = dates_utc.tz_convert(LOCAL_TIMEZONE)
         hours = dates.hour.to_numpy()
         sin_hour = np.sin(2 * np.pi * hours / 24)
         cos_hour = np.cos(2 * np.pi * hours / 24)

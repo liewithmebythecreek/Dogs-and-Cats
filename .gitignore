@@ -13,6 +13,7 @@ backend/data/forecast_log.jsonl
 backend/data/forecast_log.jsonl.old
 backend/data/recent_30d.pkl
 backend/data/*.pkl
+backend/mlruns/
 
 # Logs
 *.log
