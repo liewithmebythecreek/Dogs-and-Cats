@@ -63,3 +63,20 @@ python -m training.train_model
 - `GET /forecast/{lat}/{lon}`: Fetches official Open-Meteo forecast combined with the ML predictions for the timeframe.
 - `GET /locations/search?q={city}`: Simple Open-Meteo geocoding wrapper to search for lat/lon.
 - `POST /predict`: Direct access to ML predictions based on uploaded recent sequence block.
+
+## Prometheus Drift Monitoring
+
+This project now exposes Prometheus metrics from the backend at `GET /metrics` and runs a continuous model-drift check in the API process.
+
+- Drift check interval is controlled by `DRIFT_CHECK_INTERVAL_SECONDS` (default `900`).
+- Drift lookback window is controlled by `DRIFT_LOOKBACK_DAYS` (default `7`).
+- Drift threshold is controlled by `DRIFT_MAE_THRESHOLD_C` (default `2.0`).
+
+When using `docker-compose up --build`, Prometheus is available at `http://localhost:9090` and scrapes the backend automatically.
+
+Key drift metrics:
+
+- `weather_model_drift_overall_mae_celsius`
+- `weather_model_drift_city_mae_celsius{city="..."}`
+- `weather_model_drift_detected`
+- `weather_model_drift_check_total{status="success|insufficient_data|error"}`

@@ -1,0 +1,12 @@
+groups:
+  - name: weather-model-drift
+    rules:
+      - alert: WeatherModelDriftDetected
+        expr: weather_model_drift_detected > 0
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: Weather model drift detected
+          description: Overall MAE is above the configured drift threshold for at least 10 minutes.
+

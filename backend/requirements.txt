@@ -17,6 +17,7 @@ urllib3<2.0.0
 fastapi
 uvicorn
 httpx
+prometheus-client
 
 # Data
 pandas

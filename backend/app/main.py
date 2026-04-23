@@ -1,8 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
-import os
+from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
 
 from app.routes import api
+from app.services.prometheus_drift import drift_monitor
 
 app = FastAPI(
     title="Real-Time Weather Prediction API",
@@ -22,6 +23,21 @@ app.add_middleware(
 
 app.include_router(api.router)
 
+@app.on_event("startup")
+async def startup_event():
+    await drift_monitor.start()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    await drift_monitor.stop()
+
+
 @app.get("/")
 def root():
     return {"message": "Welcome to Weather Prediction API. Go to /docs for Swagger UI."}
+
+
+@app.get("/metrics")
+def metrics():
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)

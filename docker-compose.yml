@@ -18,6 +18,10 @@ services:
     environment:
       - ENVIRONMENT=development
       - PORT=8000
+      - ENABLE_DRIFT_MONITORING=true
+      - DRIFT_CHECK_INTERVAL_SECONDS=900
+      - DRIFT_LOOKBACK_DAYS=7
+      - DRIFT_MAE_THRESHOLD_C=2.0
     restart: unless-stopped
 
   frontend:
@@ -31,6 +35,18 @@ services:
       - "3000:3000"
     environment:
       - VITE_API_BASE_URL=http://localhost:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    container_name: weather_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
     depends_on:
       - backend
     restart: unless-stopped
